@@ -1,0 +1,2254 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>解物 · 解连环 / 走曹 / 七巧图 / 鲁班锁</title>
+<meta name="description" content="《解物》四卷：卷一「解连环」九连环 341 步，一条格雷码；卷二「走曹」华容道，木局与数局；卷三「七巧图」七块板拼出影子；卷四「鲁班锁」真 3D 拆装，可拆可装、可键盘走通。可离线，可安装。">
+<meta name="theme-color" content="#0f110c">
+<meta name="color-scheme" content="dark">
+<meta name="application-name" content="解物">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="解物">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230f110c'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%23c8a05a' stroke-width='5'/%3E%3Cline x1='9' y1='26' x2='55' y2='26' stroke='%23e7c583' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='9' y1='38' x2='55' y2='38' stroke='%23e7c583' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:site_name" content="解物">
+<meta property="og:title" content="解物 · 解连环 / 走曹 / 七巧图">
+<meta property="og:description" content="九连环 341 步的递归，华容道 90/81/116 的搜索，七巧板七块拼影的变换。一盏灯下，铜木与七巧。">
+<meta property="og:image" content="icons/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="深墨底色上一只铜环穿过钗，旁题「解连环」与朱砂九字印">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="解物 · 解连环 / 走曹 / 七巧图">
+<meta name="twitter:description" content="九连环 341 步的递归，华容道 90/81/116 的搜索，七巧板七块拼影的变换。一盏灯下，铜木与七巧。">
+<meta name="twitter:image" content="icons/og-card.png">
+<style>
+  :root{
+    --ink:#0f110c;
+    --ink-2:#151912;
+    --moss:#232a20;
+    --gold:#c8a05a;
+    --gold-hi:#f2dca6;
+    --gold-lo:#7a5a25;
+    --cinnabar:#c0432f;
+    --cinnabar-text:#d9705c;
+    --rice:#e6ddc8;
+    --rice-dim:#8e8674;
+    --hair:rgba(200,160,90,.18);
+    --hair-strong:rgba(200,160,90,.34);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(760px 520px at 52% 44%, rgba(200,160,90,.10), transparent 64%),
+      radial-gradient(1100px 700px at 84% -10%, rgba(125,148,129,.07), transparent 62%),
+      radial-gradient(1200px 900px at 50% 125%, rgba(125,148,129,.05), transparent 60%),
+      var(--ink);
+    color:var(--rice);
+    font-family:"Songti SC","STSong","SimSun","Noto Serif SC","Source Han Serif SC",serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* 纸纹只落在灯下，别处保持干净 */
+  .grain{
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.16;
+    mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 45%, transparent 40%, rgba(0,0,0,.55) 100%);
+  }
+
+  .app{
+    position:relative;z-index:2;
+    height:100dvh;
+    display:grid;
+    grid-template-columns:104px minmax(0,1fr) 216px;
+    grid-template-rows:minmax(0,1fr) auto;
+    grid-template-areas:
+      "left stage right"
+      "left dock  right";
+  }
+
+  /* ───────── 左：竖排题名 ───────── */
+  .rail-left{
+    grid-area:left;
+    display:flex;flex-direction:column;align-items:center;
+    padding:34px 0 30px;
+    border-right:1px solid var(--hair);
+  }
+  .vtitle{
+    writing-mode:vertical-rl;
+    font-family:"KaiTi","STKaiti","楷体",serif;
+    font-size:44px;
+    letter-spacing:.30em;
+    line-height:1;
+    color:var(--rice);
+    text-shadow:0 0 26px rgba(200,160,90,.28);
+    user-select:none;
+  }
+  .vtitle .dot{color:var(--cinnabar);}
+  .seal{
+    margin-top:auto;
+    width:40px;height:40px;background:var(--cinnabar);
+    color:#f8efe0;display:grid;place-items:center;
+    font-family:"KaiTi","STKaiti",serif;font-size:21px;line-height:1;
+    border-radius:3px;
+    box-shadow:0 0 24px rgba(192,67,47,.35);
+    transform:rotate(-2deg);
+  }
+
+  /* ───────── 中：器物 ───────── */
+  .stage{
+    grid-area:stage;
+    min-height:0;min-width:0;
+    position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:8px 20px 0;
+  }
+  #board{
+    width:100%;max-width:1060px;height:100%;
+    max-height:calc(100dvh - 150px);
+    display:block;
+    touch-action:manipulation;
+    overflow:visible;
+  }
+
+  .echo{
+    display:flex;align-items:center;gap:18px;
+    font-size:13px;letter-spacing:.14em;color:#a1977f;
+    padding:6px 0 2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .echo b{color:var(--gold-hi);font-weight:400;}
+  .echo .sep{width:1px;height:12px;background:var(--hair-strong);}
+  .dots{letter-spacing:.32em;font-size:14px;color:var(--gold);opacity:.9;}
+  .dots .off{color:#3a4034;}
+
+  /* ───────── 教学条 ───────── */
+  .coach{
+    position:absolute;left:50%;top:9px;z-index:6;
+    transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;
+    width:max-content;
+    max-width:calc(100% - 36px);
+    padding:8px 12px 8px 14px;
+    border:1px solid var(--hair-strong);border-radius:2px;
+    background:rgba(15,17,12,.88);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    box-shadow:0 18px 42px rgba(0,0,0,.5);
+    animation:coachIn .3s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .coach[hidden]{display:none;}
+  @keyframes coachIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+  .coach-step{
+    flex:none;display:flex;align-items:baseline;gap:3px;
+    padding-right:14px;border-right:1px solid var(--hair);
+    color:var(--rice-dim);font-size:10px;letter-spacing:.14em;
+  }
+  .coach-step b{font-family:"KaiTi","STKaiti",serif;font-size:20px;font-weight:400;color:var(--gold);}
+  .coach-msg{
+    flex:1 1 auto;min-width:0;
+    font-size:13px;line-height:1.7;letter-spacing:.04em;color:#ded6c2;
+  }
+  .coach-msg em{color:var(--gold-hi);font-style:normal;font-size:15px;padding:0 2px;}
+  .coach-skip{
+    flex:none;background:none;border:1px solid var(--hair);
+    color:var(--rice-dim);font-family:inherit;font-size:11px;letter-spacing:.18em;
+    padding:4px 9px;border-radius:2px;cursor:pointer;transition:.2s ease;
+  }
+  .coach-skip:hover{border-color:var(--gold);color:var(--gold-hi);}
+
+  /* ───────── 右：铭牌 ───────── */
+  .rail-right{
+    grid-area:right;
+    border-left:1px solid var(--hair);
+    padding:36px 26px 30px;
+    display:flex;flex-direction:column;
+    min-height:0;
+  }
+  .lvl-chapter{
+    font-size:11px;letter-spacing:.32em;color:var(--rice-dim);
+    margin-bottom:10px;
+  }
+  .lvl-name{
+    font-family:"KaiTi","STKaiti",serif;
+    font-size:30px;letter-spacing:.16em;line-height:1.2;
+    color:var(--rice);
+  }
+  .lvl-name small{
+    display:block;font-family:inherit;font-size:12px;
+    letter-spacing:.2em;color:var(--gold);opacity:.75;margin-top:6px;
+  }
+  .stats{margin:34px 0 0;padding:0;}
+  .stats > div{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding:13px 0;border-bottom:1px solid var(--hair);
+  }
+  .stats dt{font-size:12px;letter-spacing:.26em;color:var(--rice-dim);}
+  .stats dd{margin:0;font-variant-numeric:tabular-nums;text-align:right;}
+  .stats dd b{font-size:26px;font-weight:400;color:var(--rice);letter-spacing:.02em;}
+  .stats dd span{font-size:12px;color:var(--rice-dim);margin-left:4px;}
+  .stats dd i{font-style:normal;}
+
+  .legend{
+    margin-top:auto;padding-top:24px;
+    font-size:11px;line-height:2;color:var(--rice-dim);letter-spacing:.06em;
+  }
+  .legend strong{color:var(--gold);font-weight:400;letter-spacing:.16em;}
+
+  /* 进度与开关 */
+  .prog{margin-top:19px;}
+  .prog-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:10px;letter-spacing:.24em;color:var(--rice-dim);margin-bottom:8px;
+  }
+  .prog-head b{font-weight:400;color:var(--gold-hi);font-variant-numeric:tabular-nums;letter-spacing:.06em;}
+  .prog-track{height:2px;background:rgba(200,160,90,.13);overflow:hidden;}
+  .prog-track i{
+    display:block;height:100%;width:0;
+    background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));
+    box-shadow:0 0 10px rgba(200,160,90,.55);
+    transition:width .38s cubic-bezier(.2,.8,.2,1);
+  }
+  .toggles{display:flex;gap:6px;margin-top:18px;}
+  .toggles .mini{padding:5px 7px;font-size:10px;letter-spacing:.1em;white-space:nowrap;}
+  .mini{
+    background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;font-size:11px;letter-spacing:.18em;
+    padding:5px 9px;cursor:pointer;transition:.2s ease;
+  }
+  .mini:hover{border-color:var(--hair-strong);color:var(--gold-hi);}
+  .mini.on{border-color:var(--gold);color:var(--gold-hi);background:rgba(200,160,90,.08);}
+  .mini:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+
+  /* ───────── 底：操作 ───────── */
+  .dock{
+    grid-area:dock;
+    display:flex;align-items:center;justify-content:center;
+    gap:2px;padding:10px 16px 22px;
+  }
+  .dock button{
+    position:relative;
+    background:none;border:0;
+    color:var(--rice-dim);
+    font-family:inherit;font-size:14px;letter-spacing:.3em;
+    padding:10px 20px 10px 22px;
+    cursor:pointer;
+    transition:color .22s ease, text-shadow .22s ease;
+  }
+  .dock button + button::before{
+    content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:1px;height:11px;background:var(--hair-strong);
+  }
+  .dock button:hover:not(:disabled){color:var(--gold-hi);text-shadow:0 0 16px rgba(200,160,90,.5);}
+  .dock button:disabled{opacity:.3;cursor:default;}
+  .dock button.on{color:var(--gold-hi);text-shadow:0 0 18px rgba(200,160,90,.6);}
+  .dock button.primary{color:var(--gold);}
+  .dock button:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+
+  .xbtn{
+    position:absolute;top:12px;right:14px;
+    width:38px;height:38px;display:grid;place-items:center;
+    background:none;border:0;cursor:pointer;
+    color:var(--rice-dim);font-size:22px;line-height:1;
+    font-family:inherit;transition:color .2s ease;
+  }
+  .xbtn:hover{color:var(--gold-hi);}
+  .xbtn:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+
+  /* ───────── 关卡 / 弹层 ───────── */
+  .veil{
+    position:fixed;inset:0;z-index:60;
+    display:none;place-items:center;padding:24px;
+    background:rgba(8,9,6,.72);
+    backdrop-filter:blur(5px);
+  }
+  .veil.show{display:grid;animation:veilIn .25s ease both;}
+  @keyframes veilIn{from{opacity:0}to{opacity:1}}
+
+  .slab{
+    width:100%;max-width:720px;max-height:86dvh;overflow:auto;
+    background:linear-gradient(180deg, var(--ink-2), #11140e);
+    border:1px solid var(--hair-strong);
+    border-radius:2px;
+    padding:38px 40px 34px;
+    box-shadow:0 40px 90px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04);
+    animation:slabIn .32s cubic-bezier(.2,.8,.2,1) both;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(200,160,90,.32) transparent;
+  }
+  .slab::-webkit-scrollbar{width:8px;height:8px;}
+  .slab::-webkit-scrollbar-track{background:transparent;}
+  .slab::-webkit-scrollbar-thumb{background:rgba(200,160,90,.26);border-radius:4px;}
+  .slab::-webkit-scrollbar-thumb:hover{background:rgba(200,160,90,.42);}
+  @keyframes slabIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .slab h2{
+    margin:0 0 6px;font-family:"KaiTi","STKaiti",serif;
+    font-size:30px;font-weight:400;letter-spacing:.18em;color:var(--rice);
+  }
+  .slab .sub{font-size:12px;letter-spacing:.24em;color:var(--rice-dim);margin-bottom:28px;}
+  .slab h3{
+    font-size:13px;font-weight:400;letter-spacing:.26em;color:var(--gold);
+    margin:28px 0 12px;
+  }
+  .slab p{font-size:14px;line-height:2.05;color:#cfc7b4;margin:0 0 12px;letter-spacing:.03em;}
+  .slab p em{color:var(--gold-hi);font-style:normal;}
+  .slab .close{
+    position:absolute;top:16px;right:18px;
+  }
+
+  .levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+  .lv{
+    text-align:left;background:rgba(255,255,255,.018);
+    border:1px solid var(--hair);border-radius:2px;
+    padding:16px 16px 14px;cursor:pointer;color:var(--rice);
+    font-family:inherit;transition:.22s ease;position:relative;
+  }
+  .lv:hover{background:rgba(200,160,90,.08);border-color:var(--hair-strong);}
+  .lv .n{font-family:"KaiTi","STKaiti",serif;font-size:22px;letter-spacing:.1em;display:block;}
+  .lv .m{font-size:11px;letter-spacing:.14em;color:var(--rice-dim);margin-top:8px;display:block;font-variant-numeric:tabular-nums;}
+  .lv .st{position:absolute;top:14px;right:14px;font-size:10px;letter-spacing:.18em;color:var(--gold);}
+  .lv.locked{opacity:.32;cursor:default;}
+  .lv.active{border-color:var(--gold);box-shadow:0 0 0 1px rgba(200,160,90,.28), 0 0 30px rgba(200,160,90,.12) inset;}
+  .lv .lock{position:absolute;top:14px;right:14px;font-size:10px;letter-spacing:.18em;color:var(--rice-dim);}
+
+  .lv-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-top:22px;padding-top:18px;border-top:1px solid var(--hair);
+  }
+  .lv-foot span{font-size:11px;letter-spacing:.12em;color:var(--rice-dim);line-height:1.7;}
+  .lv-foot .mini{flex:none;}
+
+  .verdict{text-align:center;padding:6px 0 0;}
+  .verdict .stars{font-size:34px;letter-spacing:.28em;color:var(--gold);margin:6px 0 16px;text-shadow:0 0 30px rgba(200,160,90,.5);}
+  .verdict .stars .dim{color:#3b4136;text-shadow:none;}
+  .verdict .line{font-size:13px;letter-spacing:.18em;color:var(--rice-dim);font-variant-numeric:tabular-nums;}
+  .verdict .line b{color:var(--gold-hi);font-weight:400;font-size:18px;}
+  .verdict .acts{display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap;}
+  .share-img{
+    display:block;width:100%;height:auto;border-radius:2px;
+    border:1px solid var(--hair);background:#0b0d09;
+    box-shadow:0 22px 54px rgba(0,0,0,.45);
+  }
+  .share-cap{
+    margin-top:14px;font-size:12px;line-height:1.95;letter-spacing:.05em;
+    color:var(--rice-dim);white-space:pre-wrap;user-select:text;
+  }
+  .share-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap;}
+  .btn{
+    font-family:inherit;font-size:14px;letter-spacing:.24em;
+    padding:11px 26px;border-radius:2px;cursor:pointer;transition:.22s ease;
+    background:transparent;border:1px solid var(--hair-strong);color:var(--rice);
+  }
+  .btn:hover{border-color:var(--gold);color:var(--gold-hi);}
+  .btn.solid{background:var(--cinnabar);border-color:transparent;color:#fdf3e6;}
+  .btn.solid:hover{background:#cf4b36;color:#fff;}
+  .btn.small{font-size:12px;padding:8px 16px;letter-spacing:.16em;}
+  .pwa-row{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin:2px 0 10px;
+  }
+  .pwa-row span{font-size:11.5px;line-height:1.8;letter-spacing:.08em;color:var(--rice-dim);}
+
+  .rule{
+    display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--hair);
+    font-size:14px;line-height:1.95;color:#cfc7b4;
+  }
+  .rule .k{
+    flex:none;width:26px;height:26px;border:1px solid var(--hair-strong);
+    display:grid;place-items:center;font-size:12px;color:var(--gold);margin-top:2px;
+  }
+  .rule em{color:var(--gold-hi);font-style:normal;}
+
+  .timeline{margin:0;padding:0;list-style:none;}
+  .timeline li{
+    display:grid;grid-template-columns:96px 1fr;gap:14px;
+    padding:12px 0;border-bottom:1px solid var(--hair);
+    font-size:13px;line-height:1.9;color:#c6bfae;
+  }
+  .timeline time{color:var(--gold);font-size:11px;letter-spacing:.1em;padding-top:3px;font-variant-numeric:tabular-nums;}
+
+  /* ───────── 章节过场 ───────── */
+  #veilChapter{z-index:64;}
+  #veilCard{z-index:66;}
+  #veilShare{z-index:68;}
+  #veilCodex{z-index:70;}
+
+  .chap{
+    position:relative;max-width:600px;padding:0;overflow:hidden;
+    background:
+      radial-gradient(520px 360px at 84% 6%, rgba(200,160,90,.10), transparent 70%),
+      linear-gradient(180deg, #191d15, #10130d);
+  }
+  .chap-ghost{
+    position:absolute;top:-26px;right:18px;z-index:0;
+    font-family:"KaiTi","STKaiti",serif;font-size:176px;line-height:1;
+    color:rgba(200,160,90,.055);pointer-events:none;user-select:none;
+  }
+  .chap-inner{position:relative;z-index:1;padding:46px 46px 34px;}
+  .chap-top{display:flex;align-items:center;gap:20px;}
+  .chap-seal{
+    flex:none;width:60px;height:60px;display:grid;place-items:center;
+    background:var(--cinnabar);color:#f9efe0;border-radius:3px;
+    font-family:"KaiTi","STKaiti",serif;font-size:30px;line-height:1;
+    box-shadow:0 0 30px rgba(192,67,47,.34);
+    transform:rotate(-2deg);
+  }
+  .chap-kicker{font-size:11px;letter-spacing:.38em;color:var(--rice-dim);margin-bottom:8px;}
+  .chap-name{
+    font-family:"KaiTi","STKaiti",serif;font-size:42px;line-height:1.05;
+    letter-spacing:.22em;color:var(--rice);
+  }
+  .chap-motif{font-size:11px;letter-spacing:.24em;color:var(--gold);margin-top:9px;opacity:.82;}
+  .chap-quote{
+    margin:34px 0 26px;padding:4px 0 4px 22px;
+    border-left:2px solid var(--cinnabar);
+    font-family:"KaiTi","STKaiti",serif;
+    font-size:24px;line-height:1.9;letter-spacing:.06em;color:var(--rice);
+  }
+  .chap-plain{font-size:14px;line-height:2.05;color:#cfc7b4;margin:0 0 22px;letter-spacing:.02em;}
+  .chap-src{font-size:11px;letter-spacing:.14em;color:var(--gold);}
+  .chap-note{
+    margin-top:12px;padding-top:12px;border-top:1px solid var(--hair);
+    font-size:12px;line-height:1.9;color:var(--rice-dim);
+  }
+  .chap-foot{margin-top:30px;text-align:right;}
+
+  /* ───────── 史料卡 ───────── */
+  .card{
+    position:relative;max-width:540px;padding:0;
+    background:
+      radial-gradient(420px 300px at 18% 0%, rgba(200,160,90,.10), transparent 68%),
+      linear-gradient(180deg, #191d15, #0f120c);
+  }
+  .card::before{
+    content:"";position:absolute;inset:9px;pointer-events:none;
+    border:1px solid rgba(200,160,90,.14);
+  }
+  .card-inner{position:relative;padding:38px 38px 28px;}
+  .card-kicker{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    font-size:10px;letter-spacing:.28em;color:var(--rice-dim);margin-bottom:18px;
+  }
+  .card-tag{
+    border:1px solid var(--hair-strong);padding:3px 8px;border-radius:2px;
+    color:var(--gold);letter-spacing:.24em;
+  }
+  .card-chapter{font-size:12px;letter-spacing:.22em;color:var(--gold);margin-bottom:14px;}
+  .card-quote{
+    margin:0 0 20px;font-family:"KaiTi","STKaiti",serif;
+    font-size:23px;line-height:1.85;letter-spacing:.05em;color:var(--rice);
+  }
+  .card-plain{font-size:13.5px;line-height:2.05;color:#cfc7b4;margin:0 0 20px;}
+  .card-meta{font-size:11px;letter-spacing:.12em;color:var(--rice-dim);padding-top:14px;border-top:1px solid var(--hair);}
+  .card-note{margin-top:10px;font-size:12px;line-height:1.9;color:var(--gold);opacity:.88;}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:26px;flex-wrap:wrap;}
+  .card-saved{font-family:"KaiTi","STKaiti",serif;font-size:14px;letter-spacing:.2em;color:var(--cinnabar-text);}
+
+  /* ───────── 图鉴 ───────── */
+  .codex{max-width:760px;}
+  .codex .sub b{color:var(--gold-hi);font-weight:400;letter-spacing:.08em;}
+  .skins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  .skin{
+    text-align:left;background:rgba(255,255,255,.018);
+    border:1px solid var(--hair);border-radius:2px;
+    padding:9px;cursor:pointer;color:var(--rice);
+    font-family:inherit;transition:.22s ease;
+  }
+  .skin:hover:not(:disabled){border-color:var(--hair-strong);background:rgba(200,160,90,.06);}
+  .skin.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(200,160,90,.22), 0 0 24px rgba(200,160,90,.10) inset;}
+  .skin:disabled{opacity:.34;cursor:default;}
+  .skin .sw{
+    height:24px;border-radius:1px;margin-bottom:9px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.4);
+  }
+  .skin .nm{display:block;font-size:12px;letter-spacing:.18em;}
+  .skin .lk{display:block;font-size:9px;line-height:1.6;color:var(--rice-dim);margin-top:5px;letter-spacing:.06em;}
+  .skin.on .lk{color:var(--gold);}
+
+  .cx-group{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    margin:26px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--hair);
+    font-size:12px;letter-spacing:.24em;color:var(--gold);
+  }
+  .cx-group span{font-size:10px;letter-spacing:.14em;color:var(--rice-dim);}
+  .cx-card{border-bottom:1px solid var(--hair);}
+  details.cx-card summary{
+    list-style:none;cursor:pointer;padding:13px 2px;
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    transition:color .2s ease;
+  }
+  details.cx-card summary::-webkit-details-marker{display:none;}
+  details.cx-card summary:hover .t{color:var(--gold-hi);}
+  .cx-card .t{font-size:14px;letter-spacing:.05em;color:var(--rice);}
+  .cx-card .s{flex:none;font-size:10px;letter-spacing:.08em;color:var(--rice-dim);text-align:right;max-width:52%;line-height:1.7;}
+  .cx-body{padding:2px 2px 18px;animation:cxIn .24s ease both;}
+  @keyframes cxIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+  .cx-body .q{font-family:"KaiTi","STKaiti",serif;font-size:17px;line-height:1.85;color:var(--gold-hi);margin-bottom:10px;}
+  .cx-body p{font-size:13px;line-height:2;color:#c6bfae;margin:0 0 10px;}
+  .cx-body .src{font-size:10px;letter-spacing:.1em;color:var(--rice-dim);}
+  .cx-body .nt{font-size:11px;line-height:1.8;color:var(--gold);opacity:.85;margin-top:8px;}
+  .cx-locked{
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    padding:13px 2px;border-bottom:1px solid var(--hair);opacity:.42;
+  }
+  .cx-locked .t{font-size:14px;letter-spacing:.18em;color:var(--rice-dim);}
+  .cx-locked .s{font-size:10px;letter-spacing:.1em;color:var(--rice-dim);}
+
+  .verdict .vline{
+    font-family:"KaiTi","STKaiti",serif;font-size:20px;letter-spacing:.14em;
+    color:var(--gold-hi);margin-top:18px;
+  }
+  .verdict .note{font-size:11.5px;line-height:1.95;color:var(--rice-dim);margin-top:14px;letter-spacing:.06em;}
+
+  .lvl-chapter{
+    background:none;border:0;padding:0;cursor:pointer;
+    font-family:inherit;text-align:left;transition:color .2s ease;
+  }
+  .lvl-chapter:hover{color:var(--gold-hi);}
+  .lvl-chapter:focus-visible{outline:1px solid var(--gold);outline-offset:3px;}
+
+  /* ───────── 提示条 ───────── */
+  .toast{
+    position:fixed;left:50%;bottom:84px;z-index:80;
+    transform:translate(-50%,10px);
+    background:rgba(21,25,18,.95);
+    border:1px solid var(--hair-strong);
+    color:var(--rice);
+    font-size:13px;letter-spacing:.1em;
+    padding:11px 22px;border-radius:2px;
+    opacity:0;pointer-events:none;transition:.26s ease;
+    max-width:min(88vw,520px);text-align:center;line-height:1.7;
+    box-shadow:0 18px 40px rgba(0,0,0,.5);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* ───────── 器物动效 ───────── */
+  .ring{cursor:pointer;transform-origin:0 0;will-change:transform;}
+  .ring-hit{fill:transparent;}
+  #barBack,#barFront{pointer-events:none;}
+  .ring .body{transition:filter .3s ease;}
+  .ring:hover .body{filter:brightness(1.12);}
+  .ring.legal .body{filter:drop-shadow(0 0 7px rgba(200,160,90,.5));}
+  .ring.legal:hover .body{filter:brightness(1.12) drop-shadow(0 0 11px rgba(242,220,166,.7));}
+  .ring.hint{animation:pulseGlow 1s ease-in-out infinite;}
+  .ring.coach-dim{opacity:.25;transition:opacity .25s ease;}
+  .ring.coach-dim .body{filter:none;}
+  .ring.coach-target{animation:coachPulse 1.5s ease-in-out infinite;}
+  @keyframes coachPulse{
+    0%,100%{filter:drop-shadow(0 0 0 rgba(192,67,47,0))}
+    50%{filter:drop-shadow(0 0 15px rgba(214,88,62,.85))}
+  }
+  @keyframes pulseGlow{
+    0%,100%{filter:drop-shadow(0 0 0 rgba(242,220,166,0))}
+    50%{filter:drop-shadow(0 0 15px rgba(242,220,166,.95))}
+  }
+  .ring.shake .inner{animation:shake .34s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    22%{transform:translateX(-6px)}
+    55%{transform:translateX(5px)}
+    80%{transform:translateX(-2px)}
+  }
+  .ring .inner{transform-origin:0 0;}
+
+  #animLayer{pointer-events:none;}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+  }
+
+  /* ───────── 无障碍 ───────── */
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+  }
+  .ring:focus{outline:none;}
+  .ring:focus-visible .body{filter:brightness(1.12) drop-shadow(0 0 6px rgba(242,220,166,.7));}
+  .lv:focus-visible,.skin:focus-visible,.btn:focus-visible,summary:focus-visible{
+    outline:1px solid var(--gold);outline-offset:2px;
+  }
+  kbd{
+    display:inline-block;min-width:1.6em;padding:1px 6px;margin:0 1px;
+    border:1px solid var(--hair-strong);border-radius:2px;
+    font-family:inherit;font-size:11px;letter-spacing:.06em;color:var(--gold-hi);
+    background:rgba(200,160,90,.07);text-align:center;
+  }
+  .keys{
+    display:grid;grid-template-columns:auto 1fr;gap:9px 16px;align-items:baseline;
+    font-size:13px;line-height:1.7;color:#cfc7b4;
+  }
+  .keys span:nth-child(odd){white-space:nowrap;}
+
+  /* 手记 */
+  .mem{
+    display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:1px;background:var(--hair);border:1px solid var(--hair);
+  }
+  .mem-cell{background:rgba(255,255,255,.016);padding:11px 13px 10px;}
+  .mem-cell dt{font-size:10px;letter-spacing:.2em;color:var(--rice-dim);}
+  .mem-cell dd{margin:5px 0 0;font-size:19px;color:var(--rice);font-variant-numeric:tabular-nums;}
+  .mem-cell dd small{font-size:10px;color:var(--rice-dim);margin-left:3px;letter-spacing:.06em;}
+  .mem-recs{margin-top:12px;font-size:11.5px;line-height:2;color:var(--rice-dim);letter-spacing:.04em;}
+  .mem-recs b{color:var(--gold-hi);font-weight:400;font-variant-numeric:tabular-nums;}
+  .mem-empty{font-size:12px;line-height:1.9;color:var(--rice-dim);margin-top:10px;}
+
+  /* 胜利时铜环轻震 */
+  #rings.solved .ring .body{animation:ringSolve .92s ease-in-out both;}
+  #rings.solved .ring:nth-child(2) .body{animation-delay:.045s;}
+  #rings.solved .ring:nth-child(3) .body{animation-delay:.09s;}
+  #rings.solved .ring:nth-child(4) .body{animation-delay:.135s;}
+  #rings.solved .ring:nth-child(5) .body{animation-delay:.18s;}
+  #rings.solved .ring:nth-child(6) .body{animation-delay:.225s;}
+  #rings.solved .ring:nth-child(7) .body{animation-delay:.27s;}
+  #rings.solved .ring:nth-child(8) .body{animation-delay:.315s;}
+  #rings.solved .ring:nth-child(9) .body{animation-delay:.36s;}
+  @keyframes ringSolve{
+    0%,100%{filter:none;}
+    45%{filter:brightness(1.32) drop-shadow(0 0 16px rgba(242,220,166,.9));}
+  }
+
+  /* 高对比 */
+  html.hc{
+    --ink:#000;
+    --ink-2:#070806;
+    --moss:#1a1f17;
+    --rice:#fffdf6;
+    --rice-dim:#d8d0bb;
+    --cinnabar:#e2523a;
+    --hair:rgba(232,201,138,.34);
+    --hair-strong:rgba(232,201,138,.62);
+  }
+  html.hc body{background:#000;}
+  html.hc .grain, html.hc .vignette{display:none;}
+  html.hc .echo{color:#e2dac5;}
+  html.hc .dots{color:#ffd98a;opacity:1;}
+  html.hc .dots .off{color:#7f8a74;}
+  html.hc .slab{background:#0a0c07;border-color:rgba(232,201,138,.62);}
+  html.hc .toast{background:#0a0c07;border-color:rgba(232,201,138,.62);}
+  html.hc .mini{color:#efe8d6;border-color:rgba(232,201,138,.5);}
+  html.hc .mini:hover,html.hc .mini.on{border-color:#f2dca6;color:#fff7df;background:rgba(242,220,166,.14);}
+  html.hc .dock button{color:#d8d0bb;}
+  html.hc .dock button:hover:not(:disabled),html.hc .dock button.on{color:#fff3cf;}
+  html.hc .prog-head,html.hc .legend,html.hc .stats dt,html.hc .lv .m,html.hc .cx-card .s,html.hc .card-meta{color:#cfc7b3;}
+  html.hc .slab p,html.hc .chap-plain,html.hc .card-plain,html.hc .cx-body p,html.hc .rule{color:#ece5d4;}
+  html.hc .card-note,html.hc .cx-body .nt,html.hc .verdict .note{color:#e0c992;opacity:1;}
+  html.hc .lvl-name small{color:#ffd98a;opacity:1;}
+  html.hc .lv.locked,html.hc .skin:disabled{opacity:.6;}
+  html.hc .lv{background:rgba(255,255,255,.04);}
+  html.hc #rings{filter:none;}
+  html.hc .ring .body{filter:brightness(1.2) saturate(1.12);}
+  html.hc .ring.legal .body{filter:brightness(1.24) drop-shadow(0 0 9px rgba(255,240,190,.95));}
+  html.hc .ring:focus-visible .body{filter:brightness(1.28) drop-shadow(0 0 8px #ffe8a8);}
+  html.hc .ring.coach-dim{opacity:.4;}
+
+  /* ───────── 窄屏 ───────── */
+  @media (max-width:880px){
+    body{overflow:hidden;}
+    .app{
+      height:100dvh;
+      grid-template-columns:1fr;
+      grid-template-rows:auto minmax(0,1fr) auto auto;
+      grid-template-areas:"head" "stage" "dock" "right";
+    }
+    .rail-left{
+      grid-area:head;flex-direction:row;align-items:center;justify-content:space-between;
+      padding:12px 18px 10px;border-right:0;border-bottom:1px solid var(--hair);
+    }
+    .vtitle{writing-mode:horizontal-tb;font-size:20px;letter-spacing:.22em;}
+    .seal{width:26px;height:26px;font-size:14px;margin-top:0;}
+    .stage{padding:4px 6px 0;overflow:hidden;}
+    #board{height:100%;max-height:100%;min-height:0;}
+    .echo{padding:2px 0 0;font-size:11px;gap:10px;letter-spacing:.1em;flex:none;}
+    .dots{font-size:12px;letter-spacing:.24em;}
+    .dock{padding:6px 6px 8px;}
+    .dock button{font-size:12px;padding:8px 11px;letter-spacing:.16em;}
+    .rail-right{
+      grid-area:right;border-left:0;border-top:1px solid var(--hair);
+      padding:10px 18px 12px;
+      display:grid;grid-template-columns:1fr auto;align-items:center;gap:0 16px;
+    }
+    .lvl-chapter{display:block;grid-column:1/-1;font-size:9px;letter-spacing:.2em;margin-bottom:2px;}
+    .lvl-name{font-size:18px;letter-spacing:.1em;}
+    .lvl-name small{display:none;}
+    .stats{margin:0;display:flex;gap:16px;}
+    .stats > div{border:0;padding:0;display:flex;gap:8px;align-items:baseline;}
+    .stats dt{font-size:10px;letter-spacing:.16em;}
+    .stats dd b{font-size:18px;}
+    .stats dd span{font-size:10px;}
+    .prog{grid-column:1;margin-top:8px;}
+    .prog-head{margin-bottom:5px;font-size:9px;}
+    .toggles{grid-column:2;justify-self:end;margin-top:8px;gap:6px;}
+    .mini{font-size:10px;padding:3px 7px;letter-spacing:.12em;}
+    .legend{display:none;}
+    .coach{top:3px;gap:9px;padding:6px 9px;max-width:calc(100% - 16px);}
+    .coach-step{padding-right:9px;}
+    .coach-step b{font-size:16px;}
+    .coach-msg{font-size:11px;line-height:1.55;}
+    .coach-msg em{font-size:13px;}
+    .coach-skip{font-size:10px;padding:3px 6px;letter-spacing:.1em;}
+    .toast{bottom:132px;top:auto;}
+    .slab{padding:26px 18px 22px;max-height:92dvh;}
+    .slab h2{font-size:24px;}
+    .chap-inner{padding:32px 22px 24px;}
+    .chap-ghost{font-size:116px;top:-14px;right:10px;}
+    .chap-seal{width:46px;height:46px;font-size:24px;}
+    .chap-name{font-size:30px;}
+    .chap-quote{font-size:19px;margin:24px 0 20px;padding-left:16px;}
+    .chap-plain{font-size:13px;line-height:1.95;}
+    .card-inner{padding:30px 22px 22px;}
+    .card::before{inset:6px;}
+    .card-quote{font-size:19px;}
+    .card-plain{font-size:12.5px;line-height:1.95;}
+    .card-foot{margin-top:20px;}
+    .skins{grid-template-columns:repeat(2,minmax(0,1fr));}
+    details.cx-card summary{flex-direction:column;gap:3px;}
+    .cx-card .s{text-align:left;max-width:100%;}
+    .verdict .vline{font-size:18px;}
+    .share-acts{justify-content:stretch;}
+    .share-acts .btn{flex:1 1 auto;padding-left:10px;padding-right:10px;font-size:12px;letter-spacing:.12em;}
+    .keys{font-size:12px;gap:7px 12px;}
+    .mem{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .mem-cell dd{font-size:16px;}
+    .mem-cell{padding:9px 11px 8px;}
+  }
+
+  @media (max-width:420px){
+    .dock button{font-size:11px;padding:7px 8px;letter-spacing:.1em;}
+    .echo .sep{display:none;}
+    .mem{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+
+  /* ───────── 解物馆 · 夜案长廊 ───────── */
+  .hub{
+    position:fixed;inset:0;z-index:90;
+    display:flex;flex-direction:column;
+    padding:clamp(18px,3.2vh,38px) clamp(20px,4vw,64px) clamp(14px,2.4vh,28px);
+    background:
+      radial-gradient(900px 520px at 50% 30%, rgba(200,160,90,.10), transparent 66%),
+      radial-gradient(1200px 800px at 50% 120%, rgba(125,148,129,.07), transparent 62%),
+      var(--ink);
+    overflow:auto;
+    overscroll-behavior:contain;
+  }
+  .hub[hidden]{display:none;}
+  .hub-head{flex:0 0 auto;position:relative;text-align:center;}
+  .hub-kicker{
+    margin:0 0 8px;font-size:11px;letter-spacing:.42em;text-indent:.42em;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .hub h1{
+    margin:0;font-family:"KaiTi","STKaiti","楷体",serif;font-weight:400;
+    font-size:clamp(34px,5.2vw,58px);letter-spacing:.28em;text-indent:.28em;color:var(--rice);
+  }
+  .hub-lead{
+    max-width:640px;margin:12px auto 0;font-size:13px;line-height:1.9;
+    color:var(--rice-dim);letter-spacing:.04em;
+  }
+  .hub-seal{
+    position:absolute;left:0;top:2px;width:46px;height:46px;display:grid;place-items:center;
+    background:var(--cinnabar);color:#f3e6cc;border-radius:3px;
+    font-family:"KaiTi","STKaiti","楷体",serif;font-size:24px;line-height:1;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+  }
+  .hub-body{
+    flex:1 1 auto;display:grid;grid-template-columns:minmax(0,1fr) 300px;
+    gap:clamp(20px,3vw,48px);align-items:center;width:100%;max-width:1320px;
+    margin:0 auto;min-height:0;
+  }
+  .hub-gallery{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:clamp(10px,1.6vw,22px);align-items:end;
+  }
+  .hub-item{
+    position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:10px 6px 20px;background:transparent;border:0;border-radius:3px;
+    color:var(--rice-dim);font-family:inherit;cursor:pointer;
+    transition:color .25s ease,background .25s ease;
+  }
+  .hub-item::after{
+    content:"";position:absolute;left:12%;right:12%;bottom:7px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--hair-strong),transparent);
+    transition:background .25s ease;
+  }
+  .hub-item:hover{color:var(--rice);}
+  .hub-item:focus-visible{
+    outline:none;color:var(--rice);
+    box-shadow:0 0 0 1px var(--gold),0 0 0 5px rgba(200,160,90,.12);
+  }
+  .hub-item[aria-current="true"]{color:var(--rice);}
+  .hub-item[aria-current="true"]::after{
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .hub-item[data-status="next"],
+  .hub-item[data-status="planned"]{color:var(--rice-dim);}
+  .hub-figure{
+    width:100%;height:clamp(104px,17vh,168px);display:grid;place-items:center;
+    color:var(--gold-lo);transition:color .3s ease,transform .3s ease;
+  }
+  .hub-item[aria-current="true"] .hub-figure{color:var(--gold);transform:translateY(-3px);}
+  .hub-item[data-status="next"] .hub-figure,
+  .hub-item[data-status="planned"] .hub-figure{opacity:.62;}
+  .hub-figure svg{width:min(100%,150px);height:100%;overflow:visible;}
+  .hub-no{margin-top:4px;font-size:10px;letter-spacing:.32em;text-indent:.32em;color:var(--gold);}
+  .hub-name{
+    font-family:"KaiTi","STKaiti","楷体",serif;
+    font-size:clamp(20px,2.2vw,28px);letter-spacing:.18em;text-indent:.18em;color:inherit;
+  }
+  .hub-think{font-size:11px;letter-spacing:.12em;color:var(--rice-dim);}
+  .hub-state{margin-top:5px;font-size:10px;letter-spacing:.12em;color:var(--rice-dim);}
+  .hub-state.ready{color:var(--cinnabar-text);}
+  .hub-label{
+    border-left:1px solid var(--hair);padding:6px 0 6px 28px;min-height:300px;
+  }
+  .hub-label-no{margin:0 0 10px;font-size:10px;letter-spacing:.28em;color:var(--gold);}
+  .hub-label h2{
+    margin:0;font-family:"KaiTi","STKaiti","楷体",serif;font-weight:400;
+    font-size:clamp(26px,2.4vw,34px);letter-spacing:.14em;color:var(--rice);
+  }
+  .hub-alias{margin:6px 0 0;font-size:11px;letter-spacing:.14em;color:var(--rice-dim);}
+  .hub-line{margin:18px 0 0;font-size:13px;line-height:1.95;color:var(--rice);}
+  .hub-meta{display:grid;gap:9px;margin:20px 0 0;}
+  .hub-meta div{
+    display:flex;justify-content:space-between;gap:14px;
+    padding-bottom:8px;border-bottom:1px solid var(--hair);
+  }
+  .hub-meta dt{font-size:11px;letter-spacing:.12em;color:var(--rice-dim);}
+  .hub-meta dd{margin:0;font-size:12.5px;color:var(--rice);text-align:right;}
+  .hub-session{margin:16px 0 0;min-height:3.6em;font-size:11.5px;line-height:1.8;color:var(--rice-dim);}
+  .hub-enter{width:100%;margin-top:8px;}
+  .hub-enter[disabled]{opacity:.45;cursor:not-allowed;}
+  .hub-foot{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;
+    max-width:1320px;width:100%;margin:10px auto 0;padding-top:12px;
+    border-top:1px solid var(--hair);font-size:11px;letter-spacing:.1em;color:var(--rice-dim);
+  }
+  .hub-foot .path{color:var(--gold);letter-spacing:.18em;}
+  .hub-return{
+    position:fixed;top:14px;right:14px;z-index:45;
+    width:38px;height:38px;display:grid;place-items:center;padding:0;
+    border:1px solid var(--hair-strong);border-radius:2px;
+    background:rgba(15,17,12,.72);color:var(--gold);cursor:pointer;
+    font-family:"KaiTi","STKaiti","楷体",serif;font-size:18px;line-height:1;
+  }
+  .hub-return:hover{color:var(--gold-hi);border-color:var(--gold);}
+  .hub-return:focus-visible{outline:1px solid var(--gold);outline-offset:3px;}
+  body.hub-open .hub-return{display:none;}
+
+  @media (max-width:980px){
+    .hub-body{grid-template-columns:1fr;gap:18px;align-items:start;flex:0 0 auto;min-height:auto;}
+    .hub-gallery{grid-template-columns:repeat(4,minmax(0,1fr));}
+    .hub-figure{height:clamp(78px,12vh,112px);}
+    .hub-label{border-left:0;border-top:1px solid var(--hair);padding:18px 0 0;min-height:0;}
+    .hub-session{min-height:0;}
+  }
+  @media (max-width:640px){
+    .hub{padding:16px 14px 12px;}
+    .hub-seal{position:static;margin:0 auto 10px;width:38px;height:38px;font-size:20px;}
+    .hub h1{font-size:30px;}
+    .hub-lead{font-size:12px;}
+    .hub-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;}
+    .hub-figure{height:76px;}
+    .hub-name{font-size:20px;}
+    .hub-label{display:flex;flex-direction:column;}
+    .hub-label-no{order:1;}
+    .hub-label h2{order:2;}
+    .hub-alias{order:3;}
+    .hub-line{order:4;}
+    .hub-session{order:5;}
+    .hub-enter{order:6;}
+    .hub-meta{order:7;}
+    .hub-foot{font-size:10px;}
+    .hub-foot .hint{display:none;}
+    .hub-return{top:8px;right:8px;width:32px;height:32px;font-size:15px;}
+  }
+  @media (max-height:620px) and (min-width:641px){
+    .hub{padding-top:14px;}
+    .hub h1{font-size:34px;}
+    .hub-lead{display:none;}
+    .hub-figure{height:76px;}
+    .hub-meta{display:none;}
+    .hub-session{margin-top:14px;}
+    .hub-label{min-height:0;}
+  }
+
+  /* ───────── 卷二 · 华容道 ───────── */
+  .app[hidden]{display:none !important;}
+
+  /* 卷内两局：木局 / 数局 */
+  #appHuarong[data-mode="wood"] .dg-only{display:none !important;}
+  #appHuarong[data-mode="digital"] .hr-wood-only{display:none !important;}
+  #appHuarong[data-mode="wood"] .dg-wrap{display:none !important;}
+  #appHuarong[data-mode="digital"] .hr-wrap{display:none !important;}
+
+  .hr-modes{
+    display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 0 16px;
+  }
+  .hr-modes button{
+    padding:6px 8px;background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;font-size:10px;letter-spacing:.22em;
+    cursor:pointer;transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .hr-modes button:hover{border-color:var(--hair-strong);color:var(--rice);}
+  .hr-modes button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi);background:rgba(200,160,90,.09);}
+  .hr-modes button:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+
+  /* 桌面右栏：让模式切换避开右上角固定的「馆」按钮 */
+  @media (min-width:881px){
+    .hr-rail .hr-modes{margin-top:26px;}
+  }
+
+  .dg-wrap{
+    position:relative;height:100%;width:100%;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:6px 8px 4px;
+  }
+  #dgBoard{
+    position:relative;flex:none;
+    border:1px solid rgba(200,160,90,.30);border-radius:4px;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(96,74,42,.22), transparent 60%),
+      linear-gradient(160deg,#181d15,#10140e);
+    box-shadow:inset 0 2px 18px rgba(0,0,0,.55), 0 18px 40px rgba(0,0,0,.45);
+    touch-action:manipulation;user-select:none;
+  }
+  .dg-tile{
+    position:absolute;left:0;top:0;
+    width:calc(100% / var(--n,4));height:calc(100% / var(--n,4));
+    margin:0;padding:0;border:0;background:none;color:#f4e6c6;
+    font-family:"KaiTi","STKaiti","楷体",serif;font-weight:400;line-height:1;
+    cursor:pointer;outline:none;
+    transition:transform .14s cubic-bezier(.2,.8,.2,1);
+  }
+  .dg-face{
+    position:absolute;inset:3px;border-radius:3px;
+    display:grid;place-items:center;
+    background:linear-gradient(145deg,#95603a,#6b4326 52%,#412918);
+    border:1px solid rgba(0,0,0,.5);
+    box-shadow:inset 0 1px 0 rgba(255,235,190,.18), 0 2px 5px rgba(0,0,0,.38);
+    text-shadow:0 1px 0 rgba(0,0,0,.55);
+    transition:border-color .2s ease,box-shadow .2s ease,filter .2s ease;
+  }
+  .dg-tile.ok .dg-face{
+    border-color:rgba(200,160,90,.58);
+    box-shadow:inset 0 0 0 1px rgba(200,160,90,.24), 0 2px 5px rgba(0,0,0,.38);
+  }
+  .dg-tile.selected .dg-face,
+  .dg-tile:focus-visible .dg-face{
+    border-color:var(--gold-hi);
+    box-shadow:inset 0 0 0 1px rgba(242,220,166,.5), 0 0 13px rgba(200,160,90,.26);
+  }
+  .dg-tile.hint .dg-face{border-color:var(--gold-hi);animation:hrHint 1s ease-in-out infinite;}
+  .dg-hole{
+    position:absolute;left:0;top:0;
+    width:calc(100% / var(--n,4));height:calc(100% / var(--n,4));
+    pointer-events:none;
+  }
+  .dg-hole::after{
+    content:"";position:absolute;inset:4px;border-radius:3px;
+    background:radial-gradient(circle at 50% 34%, #141a12, #090b07);
+    box-shadow:inset 0 2px 7px rgba(0,0,0,.8), 0 0 0 1px rgba(0,0,0,.42);
+  }
+  .dg-hint-cell{
+    position:absolute;left:0;top:0;
+    width:calc(100% / var(--n,4));height:calc(100% / var(--n,4));
+    pointer-events:none;opacity:0;transition:opacity .2s ease;
+  }
+  .dg-hint-cell.show{opacity:1;}
+  .dg-hint-cell::after{
+    content:"";position:absolute;inset:4px;border-radius:3px;
+    border:2px dashed var(--gold-hi);background:rgba(242,220,166,.08);
+  }
+  .dg-coach{top:2px;max-width:calc(100% - 12px);}
+
+  .dg-stats{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+
+  .dg-win-lines{width:100%;max-width:330px;justify-self:center;margin:16px 0 0;}
+
+  .hr-stage{padding:10px 14px 4px;min-height:0;}
+  .hr-wrap{
+    position:relative;height:100%;width:100%;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #hrBoard{
+    width:min(100%,520px);height:100%;max-height:100%;
+    overflow:visible;touch-action:none;user-select:none;
+  }
+  .hr-board-bg{fill:#181d15;stroke:rgba(200,160,90,.30);stroke-width:1.4;}
+  .hr-grid line{stroke:rgba(200,160,90,.10);stroke-width:1;}
+  .hr-exit-line{stroke:rgba(200,160,90,.55);stroke-width:2;stroke-dasharray:7 7;}
+  .hr-exit-arrow{stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.8;}
+  .hr-exit-text{fill:var(--gold);font-size:15px;letter-spacing:.36em;text-anchor:middle;opacity:.82;}
+
+  .hr-piece{
+    cursor:grab;outline:none;
+    transition:transform .16s cubic-bezier(.2,.8,.2,1);
+  }
+  .hr-piece.dragging{cursor:grabbing;transition:none;}
+  .hr-piece .hr-body{
+    stroke:rgba(0,0,0,.46);stroke-width:1.4;
+    filter:url(#hrShadow);
+  }
+  .tone-cao .hr-body{fill:url(#hrCao);}
+  .tone-guan .hr-body{fill:url(#hrGuan);}
+  .tone-general .hr-body{fill:url(#hrWood);}
+  .tone-soldier .hr-body{fill:url(#hrWoodLight);}
+  .hr-label{
+    fill:#f4e6c6;font-family:"KaiTi","STKaiti","楷体",serif;
+    letter-spacing:.04em;pointer-events:none;
+    stroke:rgba(0,0,0,.38);stroke-width:1.1;paint-order:stroke;stroke-linejoin:round;
+  }
+  .tone-soldier .hr-label{fill:#2b1b0e;stroke:none;}
+  .hr-piece.selected .hr-body{stroke:var(--gold-hi);stroke-width:2.6;}
+  .hr-piece:focus-visible .hr-body{stroke:var(--gold-hi);stroke-width:2.8;}
+  .hr-piece.hint .hr-body{stroke:var(--gold-hi);stroke-width:3;animation:hrHint 1s ease-in-out infinite;}
+  @keyframes hrHint{50%{stroke-opacity:.25;}}
+  .hr-hint-rect{
+    fill:rgba(242,220,166,.10);stroke:var(--gold-hi);
+    stroke-width:2;stroke-dasharray:6 5;pointer-events:none;
+  }
+  .hr-coach{top:2px;max-width:calc(100% - 12px);}
+
+  .hr-rail{display:flex;flex-direction:column;}
+  .hr-stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:0 10px;
+    margin:18px 0 0;border-top:1px solid var(--hair);
+  }
+  .hr-stats div{padding:11px 0;border-bottom:1px solid var(--hair);}
+  .hr-stats dt{font-size:10px;letter-spacing:.18em;color:var(--rice-dim);}
+  .hr-stats dd{margin:6px 0 0;font-size:12px;color:var(--rice);}
+  .hr-stats dd b{font-family:"KaiTi","STKaiti",serif;font-size:20px;font-weight:400;color:var(--gold);}
+  .hr-metrics{display:grid;gap:7px;margin-top:16px;}
+  .hr-metric{
+    display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:8px;
+    padding:8px 9px;background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);cursor:pointer;text-align:left;font-family:inherit;
+    transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .hr-metric:hover{border-color:var(--hair-strong);color:var(--rice);}
+  .hr-metric[aria-pressed="true"]{border-color:var(--gold);color:var(--rice);background:rgba(200,160,90,.08);}
+  .hr-metric:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .hr-metric-name{font-size:11px;letter-spacing:.14em;}
+  .hr-metric b{
+    font-family:"KaiTi","STKaiti",serif;font-size:22px;font-weight:400;
+    color:var(--gold);line-height:1;
+  }
+  .hr-metric-opt{font-size:9px;letter-spacing:.06em;white-space:nowrap;}
+  .hr-metric-opt i{font-style:normal;color:var(--rice);}
+  .hr-goal{margin-top:14px;font-size:10.5px;line-height:1.85;letter-spacing:.04em;color:var(--rice-dim);}
+  .hr-rail .toggles{margin-top:auto;padding-top:16px;}
+
+  .hr-level{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"no name" "no sub" "no best";
+    gap:3px 12px;align-items:center;
+    padding:10px 13px;text-align:left;
+    background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;cursor:pointer;
+    transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .hr-level:hover{border-color:var(--hair-strong);color:var(--rice);}
+  .hr-level.current{border-color:var(--gold);background:rgba(200,160,90,.08);color:var(--rice);}
+  .hr-level:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .hr-level-no{
+    grid-area:no;align-self:center;
+    font-family:"KaiTi","STKaiti",serif;font-size:26px;line-height:1;color:var(--gold);
+  }
+  .hr-level-name{grid-area:name;font-size:14px;letter-spacing:.12em;color:var(--rice);}
+  .hr-level-sub{grid-area:sub;font-size:10px;line-height:1.6;letter-spacing:.06em;}
+  .hr-level-best{grid-area:best;font-size:10px;line-height:1.6;letter-spacing:.06em;color:var(--gold);}
+
+  .hr-win-lines{
+    display:grid;gap:2px;width:100%;max-width:330px;justify-self:center;
+    margin:16px 0 0;
+  }
+  .hr-win-line{
+    display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:14px;
+    padding:7px 10px;border-bottom:1px solid var(--hair);
+  }
+  .hr-win-line span{font-size:11px;letter-spacing:.16em;color:var(--rice-dim);text-align:left;}
+  .hr-win-line b{font-family:"KaiTi","STKaiti",serif;font-size:22px;font-weight:400;color:var(--gold);}
+  .hr-win-line i{font-style:normal;font-size:9px;letter-spacing:.05em;color:var(--rice-dim);}
+  .hr-win-acts{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+  .hr-win-acts .btn{flex:1 1 auto;max-width:170px;}
+  .hr-win-acts .btn[hidden]{display:none;}
+  .verdict .stars span:not(.on){color:#3b4136;text-shadow:none;}
+
+  @keyframes hrPulse{50%{opacity:.55;}}
+
+  @media (max-width:880px){
+    .hr-stage{padding:2px 6px 0;}
+    #hrBoard{width:100%;height:100%;}
+    .app .hr-rail{
+      display:grid;grid-template-columns:1fr auto;align-items:center;
+      grid-template-rows:auto auto auto auto;
+    }
+    .hr-rail .hr-modes{
+      grid-column:1/-1;grid-row:1;justify-self:start;
+      margin:0 0 6px;max-width:210px;width:100%;
+    }
+    .hr-rail .lvl-chapter{grid-column:1;grid-row:2;}
+    .hr-rail .lvl-name{grid-column:1;grid-row:3;font-size:18px;}
+    .hr-rail .lvl-name small{display:none;}
+    .hr-rail .hr-stats{
+      grid-column:2;grid-row:3;justify-self:end;
+      display:flex;gap:16px;margin:0;border:0;
+    }
+    .hr-rail .hr-stats div{
+      border:0;padding:0;display:flex;gap:8px;align-items:baseline;
+    }
+    .hr-rail .hr-stats dt{font-size:10px;letter-spacing:.14em;}
+    .hr-rail .hr-stats dd{margin:0;}
+    .hr-rail .hr-stats dd b{font-size:18px;}
+    .hr-rail .hr-metrics{
+      grid-column:1/-1;grid-row:4;
+      grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px;
+    }
+    .hr-rail .hr-metric{padding:6px 7px;grid-template-columns:1fr auto;gap:1px 6px;}
+    .hr-rail .hr-metric-name{grid-column:1/-1;font-size:9px;letter-spacing:.1em;}
+    .hr-rail .hr-metric b{font-size:17px;}
+    .hr-rail .hr-metric-opt{font-size:8px;}
+    .hr-rail .hr-goal{display:none;}
+    .hr-rail .toggles{
+      grid-column:2;grid-row:2;justify-self:end;align-self:start;
+      margin:0;padding:0;gap:6px;
+    }
+    .hr-rail .dg-stats{gap:14px;}
+    .hr-coach,.dg-coach{top:1px;}
+  }
+
+  @media (max-width:420px){
+    .hr-rail .hr-stats:not(.dg-stats) div:last-child{display:none;}
+    .hr-rail .dg-stats{gap:10px;}
+    .hr-rail .toggles .mini{padding:3px 6px;}
+    .hr-rail .hr-modes{max-width:180px;}
+  }
+
+  /* ───────── 卷三 · 七巧板 ───────── */
+  .tg-stage{padding:8px 14px 2px;min-height:0;}
+  .tg-wrap{
+    position:relative;height:100%;width:100%;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #tgBoard{
+    width:min(100%,1120px);height:100%;max-height:100%;
+    display:block;overflow:visible;touch-action:none;user-select:none;-webkit-user-select:none;
+  }
+  .tg-board-bg{fill:url(#tgBoardBg);stroke:rgba(200,160,90,.24);stroke-width:1.4;}
+  .tg-grid line{stroke:rgba(200,160,90,.055);stroke-width:1;}
+  .tg-grid line.strong{stroke:rgba(200,160,90,.13);}
+  .tg-zone-sep{stroke:rgba(200,160,90,.16);stroke-width:1.2;stroke-dasharray:4 10;}
+  .tg-zone-label{
+    fill:rgba(200,160,90,.62);font-family:"KaiTi","STKaiti","楷体",serif;
+    font-size:15px;letter-spacing:.34em;text-anchor:middle;
+  }
+  .tg-target-path{
+    fill:#070805;fill-opacity:.88;stroke:none;
+    filter:drop-shadow(0 0 2px rgba(200,160,90,.62)) drop-shadow(0 0 16px rgba(200,160,90,.16));
+  }
+  .tg-piece{cursor:grab;outline:none;}
+  .tg-piece.dragging{cursor:grabbing;}
+  .tg-piece .tg-body{
+    stroke:rgba(0,0,0,.55);stroke-width:1.35;stroke-linejoin:round;
+    filter:url(#tgShadow);
+  }
+  .tg-tone-large .tg-body{fill:url(#tgWoodA);}
+  .tg-tone-medium .tg-body{fill:url(#tgWoodB);}
+  .tg-tone-small .tg-body{fill:url(#tgWoodC);}
+  .tg-tone-square .tg-body{fill:url(#tgWoodD);}
+  .tg-tone-para .tg-body{fill:url(#tgWoodE);}
+  .tg-piece.selected .tg-body,
+  .tg-piece:focus-visible .tg-body{
+    stroke:var(--gold-hi);stroke-width:2.5;
+    filter:url(#tgShadow) drop-shadow(0 0 9px rgba(242,220,166,.35));
+  }
+  .tg-piece.hint .tg-body{stroke:var(--gold-hi);stroke-width:2.8;animation:tgHint 1s ease-in-out infinite;}
+  @keyframes tgHint{50%{stroke-opacity:.25;}}
+  .tg-hint-path{
+    fill:rgba(242,220,166,.10);stroke:var(--gold-hi);
+    stroke-width:2;stroke-dasharray:6 5;pointer-events:none;
+    filter:drop-shadow(0 0 6px rgba(242,220,166,.24));
+  }
+  .tg-coach{top:2px;max-width:calc(100% - 12px);}
+
+  .tg-rail{display:flex;flex-direction:column;}
+  .tg-stats{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;
+    margin:18px 0 0;border-top:1px solid var(--hair);
+  }
+  .tg-stats div{padding:11px 0;border-bottom:1px solid var(--hair);}
+  .tg-stats dt{font-size:10px;letter-spacing:.18em;color:var(--rice-dim);}
+  .tg-stats dd{margin:6px 0 0;font-size:12px;color:var(--rice);}
+  .tg-stats dd b{font-family:"KaiTi","STKaiti",serif;font-size:20px;font-weight:400;color:var(--gold);}
+  .tg-tools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:14px;}
+  .tg-tools button{
+    padding:8px 4px;background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;font-size:10px;letter-spacing:.1em;
+    cursor:pointer;white-space:nowrap;transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .tg-tools button:hover{border-color:var(--gold);color:var(--gold-hi);background:rgba(200,160,90,.07);}
+  .tg-tools button:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .tg-goal{margin-top:14px;font-size:10.5px;line-height:1.85;letter-spacing:.04em;color:var(--rice-dim);}
+  .tg-goal em{color:var(--gold-hi);font-style:normal;}
+  .tg-rail .toggles{margin-top:auto;padding-top:16px;}
+  .tg-rail .toggles .mini{padding:5px 7px;font-size:10px;letter-spacing:.1em;white-space:nowrap;}
+
+  .tg-level{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"no name" "no sub" "no best";
+    gap:3px 12px;align-items:center;
+    padding:10px 13px;text-align:left;
+    background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;cursor:pointer;
+    transition:border-color .2s ease,color .2s ease,background .2s ease;
+  }
+  .tg-level:hover{border-color:var(--hair-strong);color:var(--rice);}
+  .tg-level.current{border-color:var(--gold);background:rgba(200,160,90,.08);color:var(--rice);}
+  .tg-level:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .tg-level-no{
+    grid-area:no;align-self:center;
+    font-family:"KaiTi","STKaiti",serif;font-size:26px;line-height:1;color:var(--gold);
+  }
+  .tg-level-name{grid-area:name;font-size:14px;letter-spacing:.12em;color:var(--rice);}
+  .tg-level-sub{grid-area:sub;font-size:10px;line-height:1.6;letter-spacing:.06em;}
+  .tg-level-best{grid-area:best;font-size:10px;line-height:1.6;letter-spacing:.06em;color:var(--gold);}
+  .tg-win-acts{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+  .tg-win-acts .btn{flex:1 1 auto;max-width:180px;}
+  .tg-win-acts .btn[hidden]{display:none;}
+
+  @media (max-width:880px){
+    .tg-stage{padding:2px 6px 0;}
+    #tgBoard{width:100%;height:100%;}
+    .app .tg-rail{
+      display:grid;grid-template-columns:1fr auto;align-items:center;
+      grid-template-rows:auto auto auto;gap:0 14px;
+    }
+    .tg-rail .lvl-chapter{grid-column:1/-1;grid-row:1;}
+    .tg-rail .lvl-name{grid-column:1;grid-row:2;font-size:18px;}
+    .tg-rail .lvl-name small{display:none;}
+    .tg-rail .tg-stats{
+      grid-column:2;grid-row:2;justify-self:end;
+      display:flex;gap:14px;margin:0;border:0;
+    }
+    .tg-rail .tg-stats div{
+      border:0;padding:0;display:flex;gap:6px;align-items:baseline;
+    }
+    .tg-rail .tg-stats dt{font-size:9px;letter-spacing:.12em;}
+    .tg-rail .tg-stats dd{margin:0;}
+    .tg-rail .tg-stats dd b{font-size:17px;}
+    .tg-rail .tg-tools{
+      grid-column:1;grid-row:3;display:flex;gap:5px;margin-top:8px;
+    }
+    .tg-rail .tg-tools button{font-size:9px;padding:5px 8px;letter-spacing:.06em;}
+    .tg-rail .tg-goal{display:none;}
+    .tg-rail .toggles{
+      grid-column:2;grid-row:3;justify-self:end;margin:0;padding:0;gap:6px;
+    }
+    .tg-coach{top:1px;}
+  }
+
+  @media (max-width:420px){
+    .tg-rail .tg-stats div:nth-child(3){display:none;}
+    .tg-rail .tg-tools button{font-size:8.5px;padding:4px 6px;}
+    .tg-rail .toggles .mini{padding:3px 6px;}
+  }
+
+  /* ───────── 卷四 · 鲁班锁 ───────── */
+  .burr-stage{padding:8px 14px 2px;}
+  .burr-wrap{
+    position:relative;flex:1 1 auto;width:100%;max-width:1120px;
+    min-height:0;display:flex;
+  }
+  #burrBoard{
+    display:block;width:100%;height:100%;min-height:0;
+    touch-action:none;cursor:default;
+    border:1px solid rgba(200,160,90,.14);border-radius:3px;
+    background:
+      radial-gradient(120% 100% at 50% 40%, #1a1e16, #10130d 70%);
+  }
+  #burrBoard:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .burr-coach{top:2px;max-width:calc(100% - 12px);}
+  .burr-tray{
+    position:absolute;right:10px;bottom:10px;z-index:5;
+    width:min(238px,46%);max-height:46%;
+    display:flex;flex-direction:column;
+    padding:8px 9px 9px;
+    border:1px solid var(--hair-strong);border-radius:2px;
+    background:rgba(15,17,12,.82);
+    -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+    box-shadow:0 14px 34px rgba(0,0,0,.45);
+  }
+  .burr-tray-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:10px;letter-spacing:.2em;color:var(--rice-dim);margin-bottom:6px;
+  }
+  .burr-tray-head b{
+    font-weight:400;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.06em;
+  }
+  .burr-tray-list{display:grid;gap:4px;overflow:auto;min-height:0;scrollbar-width:thin;}
+  .burr-chip{
+    display:grid;grid-template-columns:8px 1fr auto;gap:7px;align-items:center;
+    text-align:left;background:rgba(255,255,255,.018);
+    border:1px solid transparent;border-radius:2px;padding:5px 6px;
+    color:var(--rice-dim);font-family:inherit;font-size:10px;letter-spacing:.08em;
+    cursor:pointer;transition:.18s ease;opacity:.52;
+  }
+  .burr-chip i{
+    display:block;width:8px;height:8px;border-radius:1px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.45);
+  }
+  .burr-chip em{font-style:normal;font-size:9px;color:var(--rice-dim);}
+  .burr-chip:hover{border-color:var(--hair-strong);color:var(--rice);opacity:.82;}
+  .burr-chip.on{border-color:rgba(200,160,90,.55);background:rgba(200,160,90,.09);color:var(--rice);opacity:1;}
+  .burr-chip.on em{color:var(--gold);}
+  .burr-chip:focus-visible{outline:1px solid var(--gold);outline-offset:1px;}
+  .burr-modes{
+    display:grid;grid-template-columns:1fr 1fr;margin-top:22px;
+    border:1px solid var(--hair);border-radius:2px;overflow:hidden;
+  }
+  .burr-modes button{
+    background:none;border:0;color:var(--rice-dim);
+    font-family:inherit;font-size:12px;letter-spacing:.28em;
+    padding:8px 0;cursor:pointer;transition:.2s ease;
+  }
+  .burr-modes button + button{border-left:1px solid var(--hair);}
+  .burr-modes button:hover{color:var(--gold-hi);background:rgba(200,160,90,.05);}
+  .burr-modes button.on{color:#1a1c14;background:linear-gradient(180deg,var(--gold-hi),var(--gold));}
+  .burr-modes button:focus-visible{outline:1px solid var(--gold);outline-offset:-2px;}
+  .burr-stats{margin:18px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+  .burr-stats div{padding:9px 0;border-bottom:1px solid var(--hair);}
+  .burr-stats dt{font-size:9.5px;letter-spacing:.18em;color:var(--rice-dim);}
+  .burr-stats dd{margin:3px 0 0;font-size:12px;color:var(--rice);font-variant-numeric:tabular-nums;}
+  .burr-stats dd b{font-family:"KaiTi","STKaiti",serif;font-size:19px;font-weight:400;color:var(--gold);}
+  .burr-tools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:14px;}
+  .burr-tools button{
+    background:none;border:1px solid var(--hair);border-radius:2px;
+    color:var(--rice-dim);font-family:inherit;font-size:10px;letter-spacing:.08em;
+    padding:7px 4px;cursor:pointer;transition:.2s ease;
+  }
+  .burr-tools button:hover{border-color:var(--gold);color:var(--gold-hi);background:rgba(200,160,90,.07);}
+  .burr-tools button:focus-visible{outline:1px solid var(--gold);outline-offset:2px;}
+  .burr-goal{margin-top:14px;font-size:10.5px;line-height:1.85;letter-spacing:.04em;color:var(--rice-dim);}
+  .burr-goal em{color:var(--gold-hi);font-style:normal;}
+  .burr-rail .toggles{margin-top:auto;padding-top:16px;}
+  .burr-rail .toggles .mini{padding:5px 7px;font-size:10px;letter-spacing:.1em;white-space:nowrap;}
+  .burr-veil .lv-burr .n{font-size:18px;}
+  .burr-win-acts{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+  .burr-win-acts .btn{flex:1 1 auto;max-width:180px;}
+  .burr-win-acts .btn[hidden]{display:none;}
+
+  @media (max-width:880px){
+    .burr-stage{padding:2px 6px 0;}
+    #burrBoard{height:100%;}
+    .app .burr-rail{
+      display:grid;grid-template-columns:1fr auto;align-items:center;
+      grid-template-rows:auto auto auto auto;gap:0 14px;
+    }
+    .burr-rail .lvl-chapter{grid-column:1/-1;grid-row:1;}
+    .burr-rail .lvl-name{grid-column:1;grid-row:2;font-size:18px;}
+    .burr-rail .lvl-name small{display:none;}
+    .burr-rail .burr-modes{
+      grid-column:2;grid-row:2;justify-self:end;margin:0;width:110px;
+    }
+    .burr-rail .burr-modes button{font-size:10px;padding:5px 0;}
+    .burr-rail .burr-stats{
+      grid-column:1/-1;grid-row:3;display:flex;gap:14px;margin:4px 0 0;
+    }
+    .burr-rail .burr-stats div{
+      border:0;padding:0;display:flex;gap:6px;align-items:baseline;
+    }
+    .burr-rail .burr-stats dt{font-size:9px;letter-spacing:.12em;}
+    .burr-rail .burr-stats dd{margin:0;}
+    .burr-rail .burr-stats dd b{font-size:16px;}
+    .burr-rail .burr-tools{
+      grid-column:1;grid-row:4;display:flex;gap:5px;margin-top:8px;
+    }
+    .burr-rail .burr-tools button{font-size:9px;padding:5px 8px;letter-spacing:.04em;}
+    .burr-rail .burr-goal{display:none;}
+    .burr-rail .toggles{
+      grid-column:2;grid-row:4;justify-self:end;margin:0;padding:0;gap:6px;
+    }
+    .burr-tray{width:min(190px,50%);max-height:38%;padding:6px 7px 7px;}
+    .burr-chip{font-size:9px;padding:4px 5px;}
+    .burr-coach{top:1px;}
+  }
+
+  @media (max-width:420px){
+    .burr-rail .burr-stats div:nth-child(3){display:none;}
+    .burr-rail .burr-tools button{font-size:8.5px;padding:4px 6px;}
+    .burr-tray{width:154px;}
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<div class="app" id="appRings" data-volume="rings">
+  <aside class="rail-left">
+    <div class="vtitle">解连环</div>
+    <div class="seal" title="九">九</div>
+  </aside>
+
+  <main class="stage">
+    <svg id="board" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="group" aria-label="九连环环架">
+      <defs>
+        <linearGradient id="brassGrad" x1="0" y1="0" x2="0.92" y2="1">
+          <stop offset="0"    stop-color="#fdf0c8"/>
+          <stop offset=".18"  stop-color="#e7c583"/>
+          <stop offset=".42"  stop-color="#b9904a"/>
+          <stop offset=".62"  stop-color="#7d5c25"/>
+          <stop offset=".80"  stop-color="#e9cb8b"/>
+          <stop offset="1"    stop-color="#5d4218"/>
+        </linearGradient>
+
+        <linearGradient id="rodGrad" gradientUnits="userSpaceOnUse" x1="0" y1="196" x2="0" y2="226">
+          <stop offset="0"   stop-color="#fbeec6"/>
+          <stop offset=".28" stop-color="#d9b877"/>
+          <stop offset=".55" stop-color="#8a672f"/>
+          <stop offset=".78" stop-color="#c9a45c"/>
+          <stop offset="1"   stop-color="#4c3613"/>
+        </linearGradient>
+
+        <radialGradient id="lampPool" cx="50%" cy="50%" r="50%">
+          <stop offset="0"   stop-color="#e8c98a" stop-opacity=".11"/>
+          <stop offset=".55" stop-color="#e8c98a" stop-opacity=".035"/>
+          <stop offset="1"   stop-color="#e8c98a" stop-opacity="0"/>
+        </radialGradient>
+
+        <filter id="softBlur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="18"/>
+        </filter>
+        <filter id="tinyBlur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="5"/>
+        </filter>
+      </defs>
+
+      <ellipse cx="540" cy="292" rx="470" ry="250" fill="url(#lampPool)"/>
+
+      <g id="dust" opacity=".5"></g>
+
+      <ellipse cx="540" cy="468" rx="300" ry="18" fill="#000" opacity=".45" filter="url(#softBlur)"/>
+      <line x1="215" y1="468" x2="865" y2="468" stroke="#c8a05a" stroke-opacity=".09"/>
+
+      <g id="puzzle">
+        <g id="barBack">
+          <line x1="874" y1="202" x2="192" y2="202" stroke="url(#rodGrad)" stroke-width="9" stroke-linecap="round"/>
+        </g>
+        <g id="rings"></g>
+        <g id="barFront">
+          <line x1="192" y1="216" x2="874" y2="216" stroke="url(#rodGrad)" stroke-width="9" stroke-linecap="round"/>
+          <path d="M192 202 A7 7 0 0 0 192 216" fill="none" stroke="url(#rodGrad)" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="874" cy="202" r="6" fill="url(#rodGrad)"/>
+          <circle cx="874" cy="216" r="6" fill="url(#rodGrad)"/>
+        </g>
+        <g id="animLayer"></g>
+      </g>
+    </svg>
+
+    <div class="echo">
+      <span class="dots" id="echoDots" aria-hidden="true"></span>
+      <span class="sep"></span>
+      <span>距解 <b id="echoDist">341</b> 步</span>
+      <span class="sep" id="echoSegSep" hidden></span>
+      <span id="echoSeg" hidden></span>
+    </div>
+
+    <div class="coach" id="coach" hidden>
+      <div class="coach-step"><b id="coachNum">一</b><span>/ 五</span></div>
+      <div class="coach-msg" id="coachMsg" role="status" aria-live="polite"></div>
+      <button class="coach-skip" data-act="skipTutorial">跳过</button>
+    </div>
+  </main>
+
+  <aside class="rail-right">
+    <button class="lvl-chapter" id="lvlChapter" data-act="chapter" title="重看本章题解">玉连环 · 战国</button>
+    <div class="lvl-name" id="lvlName">三连环<small id="lvlSub">五步可解</small></div>
+
+    <dl class="stats">
+      <div><dt>步数</dt><dd><b id="hudMoves">0</b><span>/ <i id="hudOpt">5</i></span></dd></div>
+      <div><dt>用时</dt><dd><b id="hudTime">00:00</b></dd></div>
+    </dl>
+
+    <div class="prog">
+      <div class="prog-head"><span>进度</span><b id="hudPct">0%</b></div>
+      <div class="prog-track"><i id="hudProg"></i></div>
+    </div>
+
+    <div class="toggles">
+      <button class="mini" id="btnLegal" data-act="toggleLegal" aria-pressed="false" title="标出当前可动的环">可动</button>
+      <button class="mini" id="btnSound" data-act="toggleSound" aria-pressed="true">音</button>
+      <button class="mini" id="btnCodex" data-act="codex" title="图鉴 · 史料与器色">史料</button>
+      <button class="mini" id="btnContrast" data-act="toggleContrast" aria-pressed="false" title="高对比模式（C）">对比</button>
+    </div>
+
+    <div class="legend">
+      <strong>两则</strong><br>
+      一、首环随时可上下。<br>
+      二、欲动第 k 环，须第 k−1 环在钗，且 1 至 k−2 环皆不在。
+    </div>
+  </aside>
+
+  <footer class="dock">
+    <button data-act="undo" title="撤销（Z）" aria-keyshortcuts="Z">撤销</button>
+    <button data-act="reset" title="重置本局（连按两次 R）" aria-keyshortcuts="R">重置</button>
+    <button data-act="hint" title="提示下一步（H）" aria-keyshortcuts="H">提示</button>
+    <button data-act="auto" title="按最短解演示（A）" aria-keyshortcuts="A">演示</button>
+    <button data-act="levels" class="primary" title="选局（L）" aria-keyshortcuts="L">关卡</button>
+    <button data-act="help" title="玩法与快捷键（?）" aria-keyshortcuts="Shift+/">说明</button>
+  </footer>
+</div>
+
+<!-- 卷二 · 华容道 -->
+<div class="app huarong" id="appHuarong" data-volume="huarong" data-mode="wood" hidden>
+  <aside class="rail-left">
+    <div class="vtitle">华容道</div>
+    <div class="seal" title="二">二</div>
+  </aside>
+
+  <main class="stage hr-stage">
+    <div class="hr-wrap">
+      <svg id="hrBoard" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid meet" role="group" aria-label="华容道棋盘，四列五行">
+        <defs>
+          <linearGradient id="hrWood" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#9a683c"/>
+            <stop offset=".45" stop-color="#75492a"/>
+            <stop offset="1" stop-color="#4c2e1a"/>
+          </linearGradient>
+          <linearGradient id="hrWoodLight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#c59a63"/>
+            <stop offset=".5" stop-color="#8c6539"/>
+            <stop offset="1" stop-color="#5e4327"/>
+          </linearGradient>
+          <linearGradient id="hrCao" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a83a2a"/>
+            <stop offset=".5" stop-color="#7e2a1f"/>
+            <stop offset="1" stop-color="#571b14"/>
+          </linearGradient>
+          <linearGradient id="hrGuan" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b07a3a"/>
+            <stop offset=".5" stop-color="#8a5a26"/>
+            <stop offset="1" stop-color="#5f3c18"/>
+          </linearGradient>
+          <filter id="hrShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000" flood-opacity=".5"/>
+          </filter>
+        </defs>
+
+        <rect class="hr-board-bg" x="36" y="26" width="328" height="408" rx="6"/>
+        <g class="hr-grid" aria-hidden="true">
+          <line x1="40" y1="30" x2="40" y2="430"/>
+          <line x1="120" y1="30" x2="120" y2="430"/>
+          <line x1="200" y1="30" x2="200" y2="430"/>
+          <line x1="280" y1="30" x2="280" y2="430"/>
+          <line x1="360" y1="30" x2="360" y2="430"/>
+          <line x1="40" y1="30" x2="360" y2="30"/>
+          <line x1="40" y1="110" x2="360" y2="110"/>
+          <line x1="40" y1="190" x2="360" y2="190"/>
+          <line x1="40" y1="270" x2="360" y2="270"/>
+          <line x1="40" y1="350" x2="360" y2="350"/>
+          <line x1="40" y1="430" x2="360" y2="430"/>
+        </g>
+        <g id="hrExit" aria-hidden="true">
+          <line class="hr-exit-line" x1="122" y1="430" x2="278" y2="430"/>
+          <path class="hr-exit-arrow" d="M170 444 L200 462 L230 444"/>
+          <text class="hr-exit-text" x="200" y="486">出口</text>
+        </g>
+        <g id="hrHintLayer" aria-hidden="true"></g>
+        <g id="hrPieces" role="group" aria-label="木块"></g>
+      </svg>
+
+      <div class="coach hr-coach" id="hrCoach" hidden>
+        <div class="coach-step"><b>卷</b><span>二</span></div>
+        <div class="coach-msg" id="hrCoachMsg" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="dg-wrap" id="dgWrap">
+      <div class="dg-board" id="dgBoard" role="group" aria-label="数字华容道棋盘"></div>
+      <div class="coach dg-coach" id="dgCoach" hidden>
+        <div class="coach-step"><b>数</b><span>局</span></div>
+        <div class="coach-msg" id="dgCoachMsg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="toast dg-toast" id="dgToast" role="status" aria-live="polite"></div>
+      <div class="sr-only" id="dgSr" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </main>
+
+  <aside class="rail-right hr-rail">
+    <div class="hr-modes" role="group" aria-label="卷二模式">
+      <button type="button" data-hr-mode="wood" aria-pressed="true">木局</button>
+      <button type="button" data-hr-mode="digital" aria-pressed="false">数局</button>
+    </div>
+
+    <div class="lvl-chapter hr-wood-only" id="hrChapter">教学 · 小试</div>
+    <div class="lvl-name hr-wood-only"><span id="hrName">小试</span><small id="hrSub">先学会推块</small></div>
+
+    <div class="hr-stats hr-wood-only">
+      <div><dt>用时</dt><dd><b id="hrTime">00:00</b></dd></div>
+      <div><dt>目标</dt><dd>曹操 · 出口</dd></div>
+    </div>
+
+    <div class="hr-metrics hr-wood-only" id="hrMetrics" role="group" aria-label="三种计步口径"></div>
+    <div class="hr-goal hr-wood-only">同一局棋，三种「一步」。点一行，切换提示与演示口径。</div>
+
+    <div class="lvl-chapter dg-only" id="dgChapter">数局 · 九宫</div>
+    <div class="lvl-name dg-only"><span id="dgName">九宫</span><small id="dgSub">3 × 3 · 八数一空</small></div>
+
+    <div class="hr-stats dg-stats dg-only">
+      <div><dt>步数</dt><dd><b id="dgMoves">0</b></dd></div>
+      <div><dt>用时</dt><dd><b id="dgTime">00:00</b></dd></div>
+      <div><dt>最佳</dt><dd id="dgBest">—</dd></div>
+    </div>
+
+    <div class="hr-goal dg-only">点空格旁边的数字，让它滑进空位。把数字按行排好，空格留在右下。</div>
+
+    <div class="toggles">
+      <button class="mini" data-hr-act="help" title="玩法（?）">说明</button>
+      <button class="mini" data-hr-act="contrast" title="高对比（C）">对比</button>
+      <button class="mini" data-hr-act="levels" title="选局（L）">关卡</button>
+    </div>
+  </aside>
+
+  <footer class="dock">
+    <button data-hr-act="undo" title="撤销（Z）" aria-keyshortcuts="Z">撤销</button>
+    <button data-hr-act="reset" title="重置本局（R）" aria-keyshortcuts="R">重置</button>
+    <button data-hr-act="hint" title="提示（H）" aria-keyshortcuts="H">提示</button>
+    <button data-hr-act="demo" id="hrBtnDemo" title="演示（A）" aria-keyshortcuts="A">演示</button>
+    <button data-hr-act="levels" class="primary" title="选关（L）" aria-keyshortcuts="L">关卡</button>
+    <button data-hr-act="help" title="玩法与快捷键（?）" aria-keyshortcuts="Shift+/">说明</button>
+  </footer>
+</div>
+
+<!-- 卷三 · 七巧板 -->
+<div class="app tangram" id="appTangram" data-volume="tangram" hidden>
+  <aside class="rail-left">
+    <div class="vtitle">七巧板</div>
+    <div class="seal" title="三">三</div>
+  </aside>
+
+  <main class="stage tg-stage">
+    <div class="tg-wrap">
+      <svg id="tgBoard" viewBox="0 0 960 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="七巧板：上方是剪影，下方是木片">
+        <defs>
+          <linearGradient id="tgBoardBg" x1="0" y1="0" x2="0.7" y2="1">
+            <stop offset="0" stop-color="#1b2018"/>
+            <stop offset=".55" stop-color="#14180f"/>
+            <stop offset="1" stop-color="#0e120b"/>
+          </linearGradient>
+          <linearGradient id="tgWoodA" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b07a42"/>
+            <stop offset=".45" stop-color="#8a5a2c"/>
+            <stop offset="1" stop-color="#5a3a1b"/>
+          </linearGradient>
+          <linearGradient id="tgWoodB" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#9d6b38"/>
+            <stop offset=".5" stop-color="#7a4d26"/>
+            <stop offset="1" stop-color="#4e2f16"/>
+          </linearGradient>
+          <linearGradient id="tgWoodC" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#c5955c"/>
+            <stop offset=".5" stop-color="#966b3c"/>
+            <stop offset="1" stop-color="#654525"/>
+          </linearGradient>
+          <linearGradient id="tgWoodD" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ad7745"/>
+            <stop offset=".5" stop-color="#85582e"/>
+            <stop offset="1" stop-color="#56371b"/>
+          </linearGradient>
+          <linearGradient id="tgWoodE" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a96a46"/>
+            <stop offset=".5" stop-color="#7f4b30"/>
+            <stop offset="1" stop-color="#512d1d"/>
+          </linearGradient>
+          <filter id="tgShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#000" flood-opacity=".55"/>
+          </filter>
+        </defs>
+
+        <rect class="tg-board-bg" x="0" y="0" width="960" height="640" rx="8"/>
+        <g class="tg-grid" aria-hidden="true">
+          <line x1="80" y1="0" x2="80" y2="640"/>
+          <line x1="160" y1="0" x2="160" y2="640"/>
+          <line x1="240" y1="0" x2="240" y2="640"/>
+          <line x1="320" y1="0" x2="320" y2="640"/>
+          <line x1="400" y1="0" x2="400" y2="640"/>
+          <line x1="480" y1="0" x2="480" y2="640"/>
+          <line x1="560" y1="0" x2="560" y2="640"/>
+          <line x1="640" y1="0" x2="640" y2="640"/>
+          <line x1="720" y1="0" x2="720" y2="640"/>
+          <line x1="800" y1="0" x2="800" y2="640"/>
+          <line x1="880" y1="0" x2="880" y2="640"/>
+          <line x1="0" y1="80" x2="960" y2="80"/>
+          <line x1="0" y1="160" x2="960" y2="160"/>
+          <line x1="0" y1="240" x2="960" y2="240"/>
+          <line x1="0" y1="400" x2="960" y2="400"/>
+          <line x1="0" y1="480" x2="960" y2="480"/>
+          <line x1="0" y1="560" x2="960" y2="560"/>
+          <line class="strong" x1="0" y1="320" x2="960" y2="320"/>
+        </g>
+        <line class="tg-zone-sep" x1="0" y1="320" x2="960" y2="320" aria-hidden="true"/>
+        <text class="tg-zone-label" x="758" y="54" aria-hidden="true">影</text>
+        <text class="tg-zone-label" x="918" y="372" aria-hidden="true">木</text>
+
+        <g id="tgTargetLayer" aria-hidden="true"></g>
+        <g id="tgHintLayer" aria-hidden="true"></g>
+        <g id="tgPieces" role="group" aria-label="七块木片"></g>
+      </svg>
+
+      <div class="coach tg-coach" id="tgCoach" hidden>
+        <div class="coach-step"><b>卷</b><span>三</span></div>
+        <div class="coach-msg" id="tgCoachMsg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="toast tg-toast" id="tgToast" role="status" aria-live="polite"></div>
+      <div class="sr-only" id="tgSr" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </main>
+
+  <aside class="rail-right tg-rail">
+    <div class="lvl-chapter" id="tgChapter">教学 · 两块</div>
+    <div class="lvl-name"><span id="tgName">小方</span><small id="tgSub">两块小三角 · 一方</small></div>
+
+    <div class="tg-stats">
+      <div><dt>步数</dt><dd><b id="tgMoves">0</b></dd></div>
+      <div><dt>用时</dt><dd><b id="tgTime">00:00</b></dd></div>
+      <div><dt>最佳</dt><dd id="tgBest">—</dd></div>
+    </div>
+
+    <div class="tg-tools" role="group" aria-label="选中木片">
+      <button type="button" data-tg-act="rotL" title="左转 45°（[）">↺ 左转</button>
+      <button type="button" data-tg-act="rotR" title="右转 45°（]）">↻ 右转</button>
+      <button type="button" data-tg-act="flip" title="翻面（F，仅平行四边形）">翻面</button>
+    </div>
+
+    <div class="tg-goal" id="tgGoal">选中一块，拖动平移；<em>↺ ↻</em> 每次转 45°，平行四边形可翻面。</div>
+
+    <div class="toggles">
+      <button class="mini" data-tg-act="help" title="玩法（?）">说明</button>
+      <button class="mini" data-tg-act="contrast" title="高对比（C）">对比</button>
+      <button class="mini" data-tg-act="levels" title="选关（L）">关卡</button>
+    </div>
+  </aside>
+
+  <footer class="dock">
+    <button data-tg-act="undo" title="撤销（Z）" aria-keyshortcuts="Z">撤销</button>
+    <button data-tg-act="reset" title="重置本局（R）" aria-keyshortcuts="R">重置</button>
+    <button data-tg-act="hint" title="提示（H）" aria-keyshortcuts="H">提示</button>
+    <button data-tg-act="demo" id="tgBtnDemo" title="演示（A）" aria-keyshortcuts="A">演示</button>
+    <button data-tg-act="levels" class="primary" title="选关（L）" aria-keyshortcuts="L">关卡</button>
+    <button data-tg-act="help" title="玩法与快捷键（?）" aria-keyshortcuts="Shift+/">说明</button>
+  </footer>
+</div>
+
+<div class="app burr" id="appBurr" data-volume="burr" data-mode="dis" hidden>
+  <aside class="rail-left">
+    <div class="vtitle">鲁班锁</div>
+    <div class="seal" title="四">四</div>
+  </aside>
+
+  <main class="stage burr-stage">
+    <div class="burr-wrap">
+      <canvas id="burrBoard" tabindex="0" role="application"
+        aria-label="鲁班锁三维视图。按 Tab 选木条，方向键沿轴移动，Q E 转视角，Enter 拿起或放下。"></canvas>
+
+      <div class="coach burr-coach" id="burrCoach" hidden>
+        <div class="coach-step"><b>卷</b><span>四</span></div>
+        <div class="coach-msg" id="burrCoachMsg" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="burr-tray" id="burrTray" role="group" aria-label="零件盘">
+        <div class="burr-tray-head">
+          <span id="burrTrayTitle">零件盘</span>
+          <b id="burrTrayCount">0 / 3</b>
+        </div>
+        <div class="burr-tray-list" id="burrTrayList"></div>
+      </div>
+
+      <div class="toast burr-toast" id="burrToast" role="status" aria-live="polite"></div>
+      <div class="sr-only" id="burrSr" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </main>
+
+  <aside class="rail-right burr-rail">
+    <div class="lvl-chapter" id="burrChapter">教学 · 三片</div>
+    <div class="lvl-name"><span id="burrName">三通</span><small id="burrSub">三片平板 · 一横两竖</small></div>
+
+    <div class="burr-modes" role="group" aria-label="拆装模式">
+      <button type="button" data-burr-act="mode" data-mode="dis" class="on" aria-pressed="true" title="拆模式（V 切换）">拆</button>
+      <button type="button" data-burr-act="mode" data-mode="asm" aria-pressed="false" title="装模式（V 切换）">装</button>
+    </div>
+
+    <dl class="burr-stats">
+      <div><dt id="burrDoneLabel">已拆</dt><dd><b id="burrDone">0 / 3</b></dd></div>
+      <div><dt>步数</dt><dd><b id="burrMoves">0</b></dd></div>
+      <div><dt>用时</dt><dd><b id="burrTime">00:00</b></dd></div>
+      <div><dt>最佳</dt><dd id="burrBest">—</dd></div>
+    </dl>
+
+    <div class="burr-tools" role="group" aria-label="视角与选中木条">
+      <button type="button" data-burr-act="rotateL" title="视角左转 90°（Q）">↺ 视角</button>
+      <button type="button" data-burr-act="rotateR" title="视角右转 90°（E）">↻ 视角</button>
+      <button type="button" data-burr-act="hold" id="burrBtnHold" title="拿起 / 放下（Enter）">拿起</button>
+    </div>
+
+    <div class="burr-goal" id="burrGoal">
+      点选木条，沿轴拖出；<em>← →</em> 走 x 轴，<em>↑ ↓</em> 走 z 轴，<em>Shift + ↑ ↓</em> 走 y 轴。
+    </div>
+
+    <div class="toggles">
+      <button class="mini" data-burr-act="help" title="玩法（?）">说明</button>
+      <button class="mini" data-burr-act="contrast" title="高对比（C）">对比</button>
+      <button class="mini" data-burr-act="levels" title="选关（L）">关卡</button>
+    </div>
+  </aside>
+
+  <footer class="dock">
+    <button data-burr-act="undo" title="撤销（Z）" aria-keyshortcuts="Z">撤销</button>
+    <button data-burr-act="reset" title="重置本局（R）" aria-keyshortcuts="R">重置</button>
+    <button data-burr-act="hint" title="提示（H）" aria-keyshortcuts="H">提示</button>
+    <button data-burr-act="demo" id="burrBtnDemo" title="演示（A）" aria-keyshortcuts="A">演示</button>
+    <button data-burr-act="levels" class="primary" title="选关（L）" aria-keyshortcuts="L">关卡</button>
+    <button data-burr-act="help" title="玩法与快捷键（?）" aria-keyshortcuts="Shift+/">说明</button>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr-only" id="srStatus" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- 关卡 -->
+<div class="veil" id="veilLevels" role="dialog" aria-modal="true" aria-labelledby="levelsTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-close="veilLevels" aria-label="关闭">×</button>
+    <h2 id="levelsTitle">选局</h2>
+    <div class="sub">环数愈多，步数愈倍。九环三百四十一步。</div>
+    <div class="levels" id="levelGrid"></div>
+    <div class="lv-foot">
+      <span id="lockHint">依序解锁 · 通过一局，开启下一局</span>
+      <button class="mini" id="btnFree" data-act="toggleFree">自由练习 · 解锁全部</button>
+    </div>
+  </div>
+</div>
+
+<!-- 胜利 -->
+<div class="veil" id="veilWin" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+  <div class="slab" style="position:relative;max-width:460px" tabindex="-1">
+    <button class="xbtn" data-close="veilWin" aria-label="关闭">×</button>
+    <div class="verdict">
+      <div class="sub" style="margin-bottom:0" id="winChapter">玉连环</div>
+      <h2 style="justify-self:center;text-align:center" id="winTitle">环解</h2>
+      <div class="stars" id="winStars"></div>
+      <div class="line">用了 <b id="winMoves">5</b> 步 · 最优 <span id="winOpt">5</span> 步 · <span id="winTime">00:12</span></div>
+      <div class="vline" id="winVerdict"></div>
+      <div class="note" id="winNote"></div>
+      <div class="acts">
+        <button class="btn" data-act="replay">再来一局</button>
+        <button class="btn" data-act="codex">图鉴</button>
+        <button class="btn" data-act="share">分享卡片</button>
+        <button class="btn solid" id="btnNext" data-act="next" data-autofocus>下一局</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分享 -->
+<div class="veil" id="veilShare" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="slab" style="max-width:820px" tabindex="-1">
+    <button class="xbtn" data-close="veilShare" aria-label="关闭">×</button>
+    <h2 id="shareTitle">分享</h2>
+    <div class="sub">一局一卡 · 存图或直接分享</div>
+    <img class="share-img" id="shareImg" alt="本局分享卡片预览">
+    <div class="share-cap" id="shareCap"></div>
+    <div class="share-acts">
+      <button class="btn" data-act="copyShare">复制配文</button>
+      <button class="btn" id="btnSystemShare" data-act="systemShare" hidden>系统分享</button>
+      <button class="btn solid" data-act="saveShare" data-autofocus>保存图片</button>
+    </div>
+  </div>
+</div>
+
+<!-- 章节过场 -->
+<div class="veil" id="veilChapter" role="dialog" aria-modal="true" aria-labelledby="chapName">
+  <div class="slab chap">
+    <button class="xbtn" data-close="veilChapter" aria-label="关闭">×</button>
+    <div class="chap-ghost" id="chapGhost" aria-hidden="true">一</div>
+    <div class="chap-inner">
+      <div class="chap-top">
+        <div class="chap-seal" id="chapSeal">玉</div>
+        <div>
+          <div class="chap-kicker" id="chapEra">第 一 章 · 战国</div>
+          <div class="chap-name" id="chapName">玉连环</div>
+          <div class="chap-motif" id="chapMotif">玉 · 青铜 · 椎</div>
+        </div>
+      </div>
+      <blockquote class="chap-quote" id="chapQuote"></blockquote>
+      <p class="chap-plain" id="chapPlain"></p>
+      <div class="chap-src" id="chapSource"></div>
+      <div class="chap-note" id="chapNote"></div>
+      <div class="chap-foot">
+        <button class="btn solid" data-act="closeChapter" data-autofocus>入局</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 史料卡 -->
+<div class="veil" id="veilCard" role="dialog" aria-modal="true" aria-labelledby="cardQuote">
+  <div class="slab card">
+    <button class="xbtn" data-close="veilCard" aria-label="关闭">×</button>
+    <div class="card-inner">
+      <div class="card-kicker"><span id="cardKicker">第 1 段 · 小憩</span><span class="card-tag">史料</span></div>
+      <div class="card-chapter" id="cardChapter"></div>
+      <blockquote class="card-quote" id="cardQuote"></blockquote>
+      <p class="card-plain" id="cardPlain"></p>
+      <div class="card-meta" id="cardSource"></div>
+      <div class="card-note" id="cardNote"></div>
+      <div class="card-foot">
+        <span class="card-saved">已收入图鉴</span>
+        <button class="btn solid" data-act="closeCard" data-autofocus>继续</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 图鉴 -->
+<div class="veil" id="veilCodex" role="dialog" aria-modal="true" aria-labelledby="codexTitle">
+  <div class="slab codex" style="position:relative">
+    <button class="xbtn" data-close="veilCodex" aria-label="关闭">×</button>
+    <h2 id="codexTitle">图鉴</h2>
+    <div class="sub">史料 <b id="codexCount">0 / 16</b> · 器色四品</div>
+    <h3 style="margin-top:4px">器色</h3>
+    <div class="skins" id="skinRow"></div>
+    <h3>手记</h3>
+    <div id="memStats"></div>
+    <h3>史料</h3>
+    <div id="codexList"></div>
+  </div>
+</div>
+
+<!-- 说明 -->
+<div class="veil" id="veilHelp" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-close="veilHelp" aria-label="关闭">×</button>
+    <h2 id="helpTitle">玩法</h2>
+    <div class="sub">两条规则，一条路</div>
+
+    <div class="rule"><div class="k">一</div><div>第 <em>1</em> 环随时可以上、下。</div></div>
+    <div class="rule"><div class="k">二</div><div>欲动第 <em>k</em> 环（k≥2），须第 <em>k−1</em> 环在钗上，且第 <em>1</em> 至 <em>k−2</em> 环都不在钗上。</div></div>
+    <div class="rule" style="border-bottom:0"><div class="k">三</div><div>先下第 1 环，此后两条规则<em>交替</em>使用，便不会走回头路。环数为奇数时先动第 1 环，偶数时先动第 2 环。</div></div>
+
+    <h3>键盘与显示</h3>
+    <div class="keys">
+      <span><kbd>←</kbd> <kbd>→</kbd></span><span>在铜环之间移动焦点</span>
+      <span><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd> <kbd>Space</kbd></span><span>上环 / 下环（焦点所在的那一只）</span>
+      <span><kbd>Home</kbd> <kbd>End</kbd></span><span>跳到第 1 环 / 最后一环</span>
+      <span><kbd>Z</kbd></span><span>撤销上一步</span>
+      <span><kbd>H</kbd></span><span>提示下一步</span>
+      <span><kbd>A</kbd></span><span>按最短解演示 / 停下</span>
+      <span><kbd>L</kbd></span><span>选局</span>
+      <span><kbd>C</kbd></span><span>高对比模式</span>
+      <span><kbd>M</kbd></span><span>静音 / 开声</span>
+      <span><kbd>R</kbd> <kbd>R</kbd></span><span>连按两次，重置本局</span>
+      <span><kbd>?</kbd></span><span>打开这份说明</span>
+      <span><kbd>Esc</kbd></span><span>关闭最上面一层</span>
+    </div>
+    <p style="margin-top:16px;font-size:12px;line-height:1.9;color:var(--rice-dim)">声音不是唯一的反馈：每一步都有环的位置变化、剩余步数与文字提示。右上「对比」可提高文字与线条的对比度；若系统开启「增强对比度」，首次进入会自动启用。</p>
+
+    <h3>带走这盏灯</h3>
+    <p>联网打开一次后，游戏会缓存到本地，此后断网也能开局。支持的浏览器可从桌面直接进入；双击本地的 <em>index.html</em> 也仍然即开即玩。</p>
+    <div class="pwa-row">
+      <button class="btn small" id="btnInstall" data-act="install" hidden>安装到桌面</button>
+      <span id="pwaState">正在检查离线缓存…</span>
+    </div>
+
+    <h3>为何难</h3>
+    <p>九环共 512 种状态，最短解 341 步。走错一步未必不能补救，但要多绕许多路——所以真正的对手是记性。</p>
+
+    <h3>来历</h3>
+    <ul class="timeline">
+      <li><time>前 4 世纪</time><span>惠施把「连环可解也」列入历物十事，谈的是两环相贯的玉连环。</span></li>
+      <li><time>前 3 世纪</time><span>《战国策·齐策》载秦昭王送齐国君王后玉连环，问「齐多知，而解此环不？」君王后引椎椎破之，答「谨以解矣」。</span></li>
+      <li><time>明</time><span>杨慎《丹铅总录》最早明确记下「九连环」：「以铜或铁为之，以代玉。闺妇孩童以为玩具。」</span></li>
+      <li><time>清</time><span>《红楼梦》第七回，黛玉与宝玉「大家解九连环顽」。九连环也是俗曲里的定情之物。</span></li>
+      <li><time>1940</time><span>贝尔实验室 Frank Gray 提出格雷码——比这只铜环晚了约四百年。</span></li>
+    </ul>
+
+    <h3>底下的数学</h3>
+    <p>把「第 i 环在钗上」记作二进制第 i 位，则状态恰好是<em>格雷码</em>，而到全解的最短步数就是它转成二进制后的值。你不是在解环，你是在倒着数数。</p>
+
+    <div style="margin-top:26px;text-align:right">
+      <button class="btn" data-act="tutorial">重看三环引导</button>
+    </div>
+  </div>
+</div>
+
+<!-- 卷二 · 选局 -->
+<div class="veil hr-veil" id="hrVeilLevels" role="dialog" aria-modal="true" aria-labelledby="hrLevelsTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-hr-act="closeVeil" data-veil="hrVeilLevels" aria-label="关闭">×</button>
+    <h2 id="hrLevelsTitle">选局</h2>
+    <div class="sub">先小试，再横刀立马。</div>
+    <div class="levels" id="hrLevelGrid"></div>
+    <div class="lv-foot">
+      <span>进度与三种步数都记在 jiewu.v2，换设备前记得导出。</span>
+    </div>
+  </div>
+</div>
+
+<!-- 卷二 · 说明 -->
+<div class="veil hr-veil" id="hrVeilHelp" role="dialog" aria-modal="true" aria-labelledby="hrHelpTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-hr-act="closeVeil" data-veil="hrVeilHelp" aria-label="关闭">×</button>
+    <h2 id="hrHelpTitle">华容道</h2>
+    <div class="sub">四列五行，十块木棋</div>
+
+    <div class="rule"><div class="k">一</div><div>拖动木块，只能推向<em>空位</em>；不能穿过别的棋子。</div></div>
+    <div class="rule"><div class="k">二</div><div>把 <em>曹操</em>（2×2 红块）移到底部中央的出口，即胜。</div></div>
+    <div class="rule" style="border-bottom:0"><div class="k">三</div><div>同一局棋，三种「一步」：直线步、古法指步、单格步。三个答案都成立。</div></div>
+
+    <h3>三种计步</h3>
+    <div class="keys">
+      <span>直线步</span><span>一块棋沿一个方向连续滑动任意格，算一步。横刀立马 90 步。</span>
+      <span>古法指步</span><span>同一块棋连续滑动并转弯，算一步。横刀立马 81 步。</span>
+      <span>单格步</span><span>每移动一格，算一步。横刀立马 116 步。</span>
+    </div>
+
+    <h3>键盘</h3>
+    <div class="keys">
+      <span><kbd>Tab</kbd></span><span>在木块之间移动焦点</span>
+      <span><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span><span>把焦点木块推一格</span>
+      <span><kbd>Shift</kbd> + 方向键</span><span>沿该方向一直推到不能推</span>
+      <span><kbd>Z</kbd> <kbd>R</kbd> <kbd>H</kbd> <kbd>A</kbd></span><span>撤销 / 重置 / 提示 / 演示</span>
+      <span><kbd>L</kbd> <kbd>?</kbd></span><span>选局 / 本说明</span>
+    </div>
+  </div>
+</div>
+
+<!-- 卷二 · 胜利 -->
+<div class="veil hr-veil" id="hrVeilWin" role="dialog" aria-modal="true" aria-labelledby="hrWinTitle">
+  <div class="slab" style="position:relative;max-width:480px" tabindex="-1">
+    <button class="xbtn" data-hr-act="closeWin" aria-label="关闭">×</button>
+    <div class="verdict">
+      <div class="sub" style="margin-bottom:0" id="hrWinChapter">经典 · 横刀立马</div>
+      <h2 style="justify-self:center;text-align:center" id="hrWinTitle">曹操已到出口</h2>
+      <div class="stars" id="hrWinStars"></div>
+      <div class="hr-win-lines" id="hrWinLines"></div>
+      <div class="vline">同一局棋，三种一步。</div>
+      <div class="note" id="hrWinNote"></div>
+      <div class="hr-win-acts">
+        <button class="btn" data-hr-act="winAgain">再来一局</button>
+        <button class="btn primary" id="hrWinNext" data-hr-act="winNext">下一局</button>
+        <button class="btn" data-hr-act="closeWin">看看棋盘</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 卷二 · 数局选盘 -->
+<div class="veil hr-veil" id="dgVeilLevels" role="dialog" aria-modal="true" aria-labelledby="dgLevelsTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-dg-act="closeVeil" data-veil="dgVeilLevels" aria-label="关闭">×</button>
+    <h2 id="dgLevelsTitle">选盘</h2>
+    <div class="sub">九宫、十六宫、廿五宫。盘越大，空格越少。</div>
+    <div class="levels" id="dgLevelGrid"></div>
+    <div class="lv-foot">
+      <span>每盘起手都由固定 seed 生成，复盘与测试不会变。</span>
+    </div>
+  </div>
+</div>
+
+<!-- 卷二 · 数局说明 -->
+<div class="veil hr-veil" id="dgVeilHelp" role="dialog" aria-modal="true" aria-labelledby="dgHelpTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-dg-act="closeVeil" data-veil="dgVeilHelp" aria-label="关闭">×</button>
+    <h2 id="dgHelpTitle">数局</h2>
+    <div class="sub">滑块、逆序数与一条可行解</div>
+
+    <div class="rule"><div class="k">一</div><div>点<em>空格旁边</em>的数字，它会滑进空位；其余数字不动。</div></div>
+    <div class="rule"><div class="k">二</div><div>把 <em>1 到 n²−1</em> 按行排好，空格留在右下角，即胜。</div></div>
+    <div class="rule" style="border-bottom:0"><div class="k">三</div><div>盘面不是随便打乱的：从复原态倒着走若干步生成，所以每一盘都<em>一定可解</em>。</div></div>
+
+    <h3>键盘</h3>
+    <div class="keys">
+      <span><kbd>Tab</kbd></span><span>在数字之间移动焦点</span>
+      <span><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span><span>数字挨着空格就滑进去；否则把焦点移到相邻数字</span>
+      <span><kbd>Enter</kbd> <kbd>Space</kbd></span><span>把焦点数字滑进空格</span>
+      <span><kbd>Z</kbd> <kbd>R</kbd> <kbd>H</kbd> <kbd>A</kbd></span><span>撤销 / 重置 / 提示 / 演示</span>
+      <span><kbd>L</kbd> <kbd>?</kbd></span><span>选盘 / 本说明</span>
+    </div>
+
+    <h3>可解性</h3>
+    <p>把数字按从上到下、从左到右读成一列，数一数「前面比后面大」的对数，叫<em>逆序数</em>。奇数阶盘面只接受偶数逆序；偶数阶还要看空格从底部数的行号。十五格盘的全部排列里，只有一半能还原——这不是难度，是奇偶性。</p>
+
+    <h3>为什么没有「最优」</h3>
+    <p>十五格的最短解本身是 NP-hard 的搜索问题，廿五格更甚。这里的「提示」与「演示」用曼哈顿距离加线性冲突做加权 A*，找的是一条<em>可行解</em>，不冒充最优。走得比参考解短，才是本事。</p>
+  </div>
+</div>
+
+<!-- 卷二 · 数局胜利 -->
+<div class="veil hr-veil" id="dgVeilWin" role="dialog" aria-modal="true" aria-labelledby="dgWinTitle">
+  <div class="slab" style="position:relative;max-width:480px" tabindex="-1">
+    <button class="xbtn" data-dg-act="closeWin" aria-label="关闭">×</button>
+    <div class="verdict">
+      <div class="sub" style="margin-bottom:0" id="dgWinChapter">数局 · 九宫</div>
+      <h2 style="justify-self:center;text-align:center" id="dgWinTitle">数阵已归位</h2>
+      <div class="hr-win-lines" id="dgWinLines"></div>
+      <div class="vline">数字各归其位，空格在右下。</div>
+      <div class="note" id="dgWinNote"></div>
+      <div class="hr-win-acts">
+        <button class="btn" data-dg-act="winAgain">再来一盘</button>
+        <button class="btn primary" id="dgWinNext" data-dg-act="winNext">换大盘</button>
+        <button class="btn" data-dg-act="closeWin">看看棋盘</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 卷三 · 选关 -->
+<div class="veil tg-veil" id="tgVeilLevels" role="dialog" aria-modal="true" aria-labelledby="tgLevelsTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-tg-act="closeVeil" data-veil="tgVeilLevels" aria-label="关闭">×</button>
+    <h2 id="tgLevelsTitle">选关</h2>
+    <div class="sub">先两块，再七块。</div>
+    <div class="levels" id="tgLevelGrid"></div>
+    <div class="lv-foot">
+      <span>进度与最佳步数记在 jiewu.v2；换设备前记得导出。</span>
+    </div>
+  </div>
+</div>
+
+<!-- 卷三 · 说明 -->
+<div class="veil tg-veil" id="tgVeilHelp" role="dialog" aria-modal="true" aria-labelledby="tgHelpTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-tg-act="closeVeil" data-veil="tgVeilHelp" aria-label="关闭">×</button>
+    <h2 id="tgHelpTitle">七巧板</h2>
+    <div class="sub">七块板，一方影子</div>
+
+    <div class="rule"><div class="k">一</div><div>用<em>全部</em>木片拼出上方的剪影；片与片不重叠、不留缝、不越出影子。</div></div>
+    <div class="rule"><div class="k">二</div><div>拖动木片平移，按 <em>[ ]</em> 或点「左转 / 右转」每次转 45°。平行四边形可按 <em>F</em> 翻面。</div></div>
+    <div class="rule" style="border-bottom:0"><div class="k">三</div><div>剪影不画分割线。七块板的面积合计恰好等于目标面积，所以「都在影子里且互不重叠」就是铺满。</div></div>
+
+    <h3>键盘</h3>
+    <div class="keys">
+      <span><kbd>Tab</kbd></span><span>在木片之间移动焦点</span>
+      <span><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span><span>把选中木片平移 1/4 格</span>
+      <span><kbd>Shift</kbd> + 方向键</span><span>平移一整格</span>
+      <span><kbd>[</kbd> <kbd>]</kbd></span><span>左转 / 右转 45°</span>
+      <span><kbd>F</kbd></span><span>翻面（仅平行四边形）</span>
+      <span><kbd>Z</kbd> <kbd>R</kbd> <kbd>H</kbd> <kbd>A</kbd></span><span>撤销 / 重置 / 提示 / 演示</span>
+      <span><kbd>L</kbd> <kbd>?</kbd></span><span>选关 / 本说明</span>
+    </div>
+
+    <h3>七巧板的数</h3>
+    <p>把七巧方的边长记为 4，它能切成 <em>16 个全等的小等腰直角三角形</em>。大三角各占 4，中三角、正方形、平行四边形各占 2，小三角各占 1，合计 16。七块板能拼出的凸多边形恰好 <em>13 种</em>，这个结论由王福春与熊全治在 1942 年给出。</p>
+
+    <h3>为什么没有「唯一解」</h3>
+    <p>同一个剪影往往有多种铺法；本卷只检查「是否铺满」，不规定哪一块必须落在哪里。提示给出一块板的参考落位，演示则按作者解法归位——它们都不是唯一答案。</p>
+  </div>
+</div>
+
+<!-- 卷三 · 胜利 -->
+<div class="veil tg-veil" id="tgVeilWin" role="dialog" aria-modal="true" aria-labelledby="tgWinTitle">
+  <div class="slab" style="position:relative;max-width:460px" tabindex="-1">
+    <button class="xbtn" data-tg-act="closeWin" aria-label="关闭">×</button>
+    <div class="verdict">
+      <div class="sub" style="margin-bottom:0" id="tgWinChapter">教学 · 两块</div>
+      <h2 style="justify-self:center;text-align:center" id="tgWinTitle">影已合</h2>
+      <div class="line">用了 <b id="tgWinMoves">0</b> 步 · <span id="tgWinTime">00:00</span></div>
+      <div class="vline" id="tgWinSub">两块板沿斜边相接，影子成了。</div>
+      <div class="note" id="tgWinNote"></div>
+      <div class="tg-win-acts">
+        <button class="btn" data-tg-act="replay">再来一局</button>
+        <button class="btn" data-tg-act="levels">选关</button>
+        <button class="btn solid" id="tgWinNext" data-tg-act="next">下一关</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 卷四 · 选关 -->
+<div class="veil burr-veil" id="burrVeilLevels" role="dialog" aria-modal="true" aria-labelledby="burrLevelsTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-burr-act="closeVeil" data-veil="burrVeilLevels" aria-label="关闭">×</button>
+    <h2 id="burrLevelsTitle">选关</h2>
+    <div class="sub">先三片「三通」，再六根「六子连芳」，六片「六合」与九片「九重」在后；别式另有四象、八方、十全、十二楼。</div>
+    <div class="levels" id="burrLevelGrid"></div>
+    <div class="lv-foot">
+      <span>拆与装分开记最佳步数；进度与最佳记在 jiewu.v2。</span>
+    </div>
+  </div>
+</div>
+
+<!-- 卷四 · 说明 -->
+<div class="veil burr-veil" id="burrVeilHelp" role="dialog" aria-modal="true" aria-labelledby="burrHelpTitle">
+  <div class="slab" style="position:relative" tabindex="-1">
+    <button class="xbtn" data-burr-act="closeVeil" data-veil="burrVeilHelp" aria-label="关闭">×</button>
+    <h2 id="burrHelpTitle">鲁班锁</h2>
+    <div class="sub">六根木头，三轴相扣</div>
+
+    <div class="rule"><div class="k">一</div><div><em>拆</em>：从装配态开始，点选木条，沿它能走的方向拖出；偏移达到 <em>5 格</em> 就拆下，进入右下零件盘。</div></div>
+    <div class="rule"><div class="k">二</div><div><em>装</em>：所有木条从散开位开始，逐根推回中心；偏移归到 <em>(0,0,0)</em> 即锁定，全部锁定即胜。</div></div>
+    <div class="rule" style="border-bottom:0"><div class="k">三</div><div>木条只沿三个坐标轴平移，<em>不旋转</em>。被别的木条挡住时，先移开挡路的那根；只剩最后一根时，它会自动脱离。</div></div>
+
+    <h3>键盘</h3>
+    <div class="keys">
+      <span><kbd>Tab</kbd></span><span>在木条之间循环选件</span>
+      <span><kbd>←</kbd> <kbd>→</kbd></span><span>沿 x 轴移动一格</span>
+      <span><kbd>↑</kbd> <kbd>↓</kbd></span><span>沿 z 轴（竖直）移动一格</span>
+      <span><kbd>Shift</kbd> + <kbd>↑</kbd> <kbd>↓</kbd></span><span>沿 y 轴移动一格</span>
+      <span><kbd>Enter</kbd></span><span>拿起 / 放下选中的木条</span>
+      <span><kbd>Q</kbd> <kbd>E</kbd></span><span>视角左转 / 右转 90°</span>
+      <span><kbd>Z</kbd> <kbd>R</kbd> <kbd>H</kbd> <kbd>A</kbd></span><span>撤销 / 重置 / 提示 / 演示</span>
+      <span><kbd>V</kbd> <kbd>L</kbd> <kbd>?</kbd></span><span>切拆装 / 选关 / 本说明</span>
+      <span><kbd>Esc</kbd></span><span>关闭弹层、放下木条或回馆</span>
+    </div>
+
+    <h3>关于这几关</h3>
+    <p>「六子连芳」的六根木条使用 <em>chinesejoinery.com</em> 页面里的实物体素数据，每根落在 2×2×6 的格点范围内。标准拆序是：钥匙 +x、三叉 +z、燕尾 +y、云头 +z、双榫 +x，最后边柱 +z；装回去就是这个序列的逆序。</p>
+    <p>常规 2×2×6 方木的三根鲁班锁在「只许轴向平移、不许旋转」的规则下无解，这是三件 burr 的经典结论。所以本卷的「三通」改用三片平板件：底板先向下抽出，舌板与压板依次向 +x 松开——它保留三轴互锁，但能拆也能装。</p>
+    <p>「六合」「九重」与别式「四象」「八方」「十全」「十二楼」是为本卷自设计的平板进阶形制，不是传统实物复原：四象多一根穿销；六合在通体上叠压盖、边销、边梁；九重再加顶盖、压销、上梁；八方、十全、十二楼则把外封继续加长。</p>
+    <p>视角拖动空白处旋转；松手后水平角吸附到 45° 偏移的 90° 档位，俯仰保持连续。开启系统「减少动态效果」时，视角立即跳到新档位。</p>
+  </div>
+</div>
+
+<!-- 卷四 · 胜利 -->
+<div class="veil burr-veil" id="burrVeilWin" role="dialog" aria-modal="true" aria-labelledby="burrWinTitle">
+  <div class="slab" style="position:relative;max-width:460px" tabindex="-1">
+    <button class="xbtn" data-burr-act="closeWin" aria-label="关闭">×</button>
+    <div class="verdict">
+      <div class="sub" style="margin-bottom:0" id="burrWinChapter">教学 · 三片 · 拆</div>
+      <h2 style="justify-self:center;text-align:center" id="burrWinTitle">锁已解</h2>
+      <div class="line">用了 <b id="burrWinMoves">0</b> 步 · <span id="burrWinTime">00:00</span></div>
+      <div class="vline" id="burrWinSub">木条各归零件盘。</div>
+      <div class="note" id="burrWinNote"></div>
+      <div class="burr-win-acts">
+        <button class="btn" data-burr-act="replay">再来一局</button>
+        <button class="btn" data-burr-act="levels">选关</button>
+        <button class="btn solid" id="burrWinNext" data-burr-act="next">下一关</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="hub" class="hub" role="dialog" aria-modal="true" aria-labelledby="hubTitle" hidden></section>
+
+<!-- JW_SCRIPTS -->
+
+</body>
+</html>

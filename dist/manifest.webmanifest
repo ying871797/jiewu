@@ -1,0 +1,36 @@
+{
+  "name": "解物 · 解连环 / 走曹 / 七巧图",
+  "short_name": "解物",
+  "description": "《解物》三卷：九连环 341 步的递归，华容道 90/81/116 的搜索与三档数字滑块，七巧板七块拼影的变换。可离线，可安装。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0f110c",
+  "theme_color": "#0f110c",
+  "categories": ["games", "puzzle", "education"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

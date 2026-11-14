@@ -1,0 +1,17 @@
+# 本机与工具产物
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 本机 Windows 快捷方式，不入库
+解.lnk
+
+# 方案文档与本地 worktree（agent 工作区）
+.proposals/
+.worktrees/
+
+# Cloudflare Worker 本地状态（wrangler 缓存与本地 D1）
+worker/.wrangler/
+worker/node_modules/
+worker/.dev.vars
